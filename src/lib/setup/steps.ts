@@ -23,7 +23,7 @@ export const implementationSteps: ImplStep[] = [
     status: "done",
     summary: "Repo at company-automation with landing, catalog, engines, APIs.",
     how: [
-      "Repo already created: C:\\Users\\shami\\Projects\\company-automation",
+      "Repo already created in this project folder",
       "Stack: Next.js 16 + TypeScript + Tailwind",
       "Run: npm run dev → http://localhost:3000",
     ],

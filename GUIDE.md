@@ -25,7 +25,7 @@ Live Slack / Gmail / WhatsApp **sending** still needs tokens in `.env`. Until th
 ## Start everything
 
 ```powershell
-cd C:\Users\shami\Projects\company-automation
+cd company-automation
 Copy-Item .env.example .env -ErrorAction SilentlyContinue
 docker compose up -d n8n postgres-kestra kestra postgres-temporal temporal temporal-ui ap-bridge trigger-bridge
 npm run generate:kestra:domains
