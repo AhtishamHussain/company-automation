@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "1ac3864e-2d69-46ae-9987-b39b2d9d9c5d",
+      "id": "a3737143-797c-451a-bab9-f095fa8b6947",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "944208f2-a887-4665-97d8-31cb3a29a26c"
+      "webhookId": "30e7b5ff-c15a-4514-b1af-3823873e9cf9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "1d5bd752-0c4d-4174-974f-9c4745ee5874",
+      "name": "Poll request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        120
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "df6492d4-3c25-474d-84d6-2107c4a136ff",
-              "name": "masterWorkflowId",
-              "value": "slack-feedback-poll",
-              "type": "string"
-            },
-            {
-              "id": "42cbc14b-f9f1-4e4d-9cc6-d879069a722a",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-feedback-poll",
-              "type": "string"
-            },
-            {
-              "id": "922825d6-2c79-4a1c-ace5-2ce3b1354e82",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "d7a62fd9-7284-48ef-9589-e89ad4a5912e",
-              "name": "action",
-              "value": "feedback-poll",
+              "id": "7bab01f8-b372-427f-a662-0ac67f42c4da",
+              "name": "options",
+              "value": "yes,no,later",
               "type": "string"
             }
           ]
@@ -52,26 +47,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "dae3d906-dcbf-4251-9735-424cf0525305",
-      "name": "Master metadata",
+      "id": "671883a7-a318-4359-8703-20a1e37021d4",
+      "name": "Build poll blocks",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        540,
+        120
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-feedback-poll',\n    category: 'slack',\n    action: 'feedback-poll',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/feedback-poll completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "668997b2-088d-4e9f-9b82-c673d0598a54",
+              "name": "channel",
+              "value": "#feedback",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "630233e3-b2d5-4965-a985-c4ba76c86ccb",
-      "name": "Process + stub integration",
+      "id": "c11225ba-95ce-4dbf-8012-dad2451c61ce",
+      "name": "Post poll stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        820,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{...($input.first().json||{}), votes:0}}];"
+      },
+      "id": "e60cea80-8d07-4503-bbc1-2c00eca7e2a9",
+      "name": "Tally stub",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1100,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-feedback-poll',\n  engineWorkflowRef: 'live-slack-feedback-poll',\n  category: 'slack',\n  action: 'feedback-poll',\n  message: 'Master slack/feedback-poll completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Run lightweight Slack polls\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "55ab83e0-24f1-4388-95e9-ea0b2c38e552",
+      "name": "Finish feedback-poll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "2802fe77-f9cf-4d8c-902e-6bb8aa1413a3",
+      "id": "79e2b315-b4fb-4e75-8ef1-d2c4543c70fe",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Poll request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Poll request": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Build poll blocks",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Build poll blocks": {
+      "main": [
+        [
+          {
+            "node": "Post poll stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post poll stub": {
+      "main": [
+        [
+          {
+            "node": "Tally stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tally stub": {
+      "main": [
+        [
+          {
+            "node": "Finish feedback-poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish feedback-poll": {
       "main": [
         [
           {

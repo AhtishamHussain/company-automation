@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "40f3ba24-2bf2-47ec-b1c4-48344f305bab",
+      "id": "0f39a2c5-8123-46d3-8f94-64b2021cbf17",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "26be5402-5a7e-4c7b-aebb-55cf69c5dec9"
+      "webhookId": "bfbbf991-e6b7-498f-88e7-1fb35676e3e6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "e395cf84-e922-4293-8df6-e45b6edcaf4d",
+      "name": "Standup schedule",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "1dd3c9da-666c-4705-a9a8-78995db4b08f",
-              "name": "masterWorkflowId",
-              "value": "slack-standup-prompt",
-              "type": "string"
-            },
-            {
-              "id": "caaeb6bb-17c6-45ee-9fa1-beb18d65031f",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-standup-prompt",
-              "type": "string"
-            },
-            {
-              "id": "8a429a98-5310-45cd-9a78-438f7c3ef0b7",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "775f0bf9-611f-4842-9722-8760145b3558",
-              "name": "action",
-              "value": "standup-prompt",
+              "id": "4ad02038-7322-4907-896e-0ecf5ffc9f54",
+              "name": "question",
+              "value": "What did you ship?",
               "type": "string"
             }
           ]
@@ -52,26 +47,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "f30e1ba3-c388-4bfb-8fc8-ed9bfff68e31",
-      "name": "Master metadata",
+      "id": "206d0f11-8933-4014-b39a-9c4e4ce662ad",
+      "name": "Build prompt",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        520,
+        180
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-standup-prompt',\n    category: 'slack',\n    action: 'standup-prompt',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/standup-prompt completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6fcf3581-4800-495f-bf3c-d4452db16385",
+              "name": "channel",
+              "value": "#standup",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "90e5f1a4-58ac-41e3-b0e9-26ab12220215",
-      "name": "Process + stub integration",
+      "id": "5dfc9584-65da-4cd5-8b0b-3bb8eb77805a",
+      "name": "Post to channel stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, collected:0}}];"
+      },
+      "id": "75118e95-6bd1-424e-b942-9ab7f6035a26",
+      "name": "Collect replies stub",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1040,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-standup-prompt',\n  engineWorkflowRef: 'live-slack-standup-prompt',\n  category: 'slack',\n  action: 'standup-prompt',\n  message: 'Master slack/standup-prompt completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Daily standup reminders and collection\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "6f3dd6d8-7e43-462d-a460-8754ef013236",
+      "name": "Finish standup-prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "47848f18-d895-493f-b6bc-2e83f0dbda3e",
+      "id": "7e657bf6-a9ca-4801-9e65-aa11b6a10b66",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Standup schedule",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Standup schedule": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Build prompt",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Build prompt": {
+      "main": [
+        [
+          {
+            "node": "Post to channel stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to channel stub": {
+      "main": [
+        [
+          {
+            "node": "Collect replies stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect replies stub": {
+      "main": [
+        [
+          {
+            "node": "Finish standup-prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish standup-prompt": {
       "main": [
         [
           {

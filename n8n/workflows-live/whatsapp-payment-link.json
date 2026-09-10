@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "0d0db0c3-ffb5-4787-bdf5-428cc50e5545",
+      "id": "b8b4ca80-3514-4a38-99b4-8b9e50c24e09",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "a9a09bb7-5c8d-450b-a9a7-c479a237b089"
+      "webhookId": "e01f9434-65be-4540-8e99-1fa535f9303f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "09614770-0e65-40d6-ab0b-8586a68b7d42",
+      "name": "Invoice event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        80
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "04dc791f-926b-43b9-bdd5-0868768da1bc",
-              "name": "masterWorkflowId",
-              "value": "whatsapp-payment-link",
-              "type": "string"
-            },
-            {
-              "id": "59e2d42a-4313-4dd2-817a-1439d981ada2",
-              "name": "engineWorkflowRef",
-              "value": "live-whatsapp-payment-link",
-              "type": "string"
-            },
-            {
-              "id": "7ed34a45-6d7a-417e-9c2e-4c9ecc21b737",
-              "name": "category",
-              "value": "whatsapp",
-              "type": "string"
-            },
-            {
-              "id": "0e978ab5-0ac7-440d-ae97-547fef90236d",
-              "name": "action",
-              "value": "payment-link",
+              "id": "8079b6a5-7c8a-430d-85da-a3887b151d5e",
+              "name": "link",
+              "value": "https://pay.example/stub",
               "type": "string"
             }
           ]
@@ -52,26 +47,76 @@
           "includeOtherFields": true
         }
       },
-      "id": "4e1a250f-e7fd-4590-9704-38b468a531c1",
-      "name": "Master metadata",
+      "id": "17126790-bc7d-4498-9c64-c776e9910daa",
+      "name": "Build payment URL stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        540,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-payment-link',\n    category: 'whatsapp',\n    action: 'payment-link',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/payment-link completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ffc5e537-aa32-430e-8061-f2106be86e1c",
+              "name": "template",
+              "value": "payment_link",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "4d3359fe-0145-48c9-b654-4d6d1239915a",
-      "name": "Process + stub integration",
+      "id": "1382d8a1-32db-4812-bd4c-9aceed5d7578",
+      "name": "Attach to template",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        820,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6418eac3-7255-4fc2-91ab-7b4d80a0fbdb",
+              "name": "provider",
+              "value": "whatsapp-cloud",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "1e539d1b-1d93-4df1-9593-7cd9caca3eb7",
+      "name": "Send on WhatsApp stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'whatsapp-payment-link',\n  engineWorkflowRef: 'live-whatsapp-payment-link',\n  category: 'whatsapp',\n  action: 'payment-link',\n  message: 'Master whatsapp/payment-link completed on n8n',\n  detail: j,\n  integration: { provider: 'whatsapp-flow', status: 'accepted', note: \"Send invoice payment links\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "e95c6901-7433-42fb-b399-36a1c71c765a",
+      "name": "Finish payment-link",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +125,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "3d3a60ce-ae5d-412c-aa3e-ab51ace66b9c",
+      "id": "f935e57e-b8dc-48cb-83c2-2f6b29eda7a2",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +140,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Invoice event",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Invoice event": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Build payment URL stub",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Build payment URL stub": {
+      "main": [
+        [
+          {
+            "node": "Attach to template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach to template": {
+      "main": [
+        [
+          {
+            "node": "Send on WhatsApp stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send on WhatsApp stub": {
+      "main": [
+        [
+          {
+            "node": "Finish payment-link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish payment-link": {
       "main": [
         [
           {

@@ -8,42 +8,77 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "8735f1fe-8fd0-4b1c-8f5b-482b36c65731",
+      "id": "12865d75-7281-49cf-8df1-0c18c8957aea",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "da179ead-6984-4d1c-8d69-b6340573d1a6"
+      "webhookId": "41d565c3-3719-48b9-bed8-14181905bda2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "5b74e08e-f051-4b67-9ccc-2b9ac34517f8",
+      "name": "Read opportunity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7302574c-e97a-4313-a1b9-107249d79ec1",
+              "leftValue": "={{ $json.company }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "536e190e-e141-46ba-9fc7-448c36f7c405",
+      "name": "Aging deal?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "da09de8d-b495-4fc8-b25b-23b31fee5b9e",
-              "name": "masterWorkflowId",
-              "value": "crm-stale-deal-nudge",
+              "id": "66067f53-f949-4b8e-aa24-14065cfa2683",
+              "name": "nudge",
+              "value": "true",
               "type": "string"
             },
             {
-              "id": "d1339f4c-6c79-4f12-9aa3-5e350850d91b",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-stale-deal-nudge",
-              "type": "string"
-            },
-            {
-              "id": "0e265b7b-6491-49f4-a901-411a0f0fc8d3",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "b5bc5066-1c29-4053-9454-db67b2743464",
-              "name": "action",
-              "value": "stale-deal-nudge",
+              "id": "bcbc9a00-71cd-435a-974e-1e8b70dd043c",
+              "name": "channel",
+              "value": "owner-email",
               "type": "string"
             }
           ]
@@ -52,26 +87,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "e30cefd1-e8f0-401a-a6c9-a824d5a6054b",
-      "name": "Master metadata",
+      "id": "0988293a-c9cb-4beb-ab48-14a04edeebf9",
+      "name": "Nudge owner",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-stale-deal-nudge',\n    category: 'crm',\n    action: 'stale-deal-nudge',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/stale-deal-nudge completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a968924-73f1-4311-b6b5-09eaf97b6224",
+              "name": "nudge",
+              "value": "false",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "d46ca4ac-9c49-490c-bd09-bf252ef3fc1d",
-      "name": "Process + stub integration",
+      "id": "679ca060-360f-4b51-ab50-bef029990934",
+      "name": "Skip healthy deal",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "41810801-7bbe-45ed-9630-01a91af3f716",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-stale-deal-nudge',\n  engineWorkflowRef: 'live-crm-stale-deal-nudge',\n  category: 'crm',\n  action: 'stale-deal-nudge',\n  message: 'Master crm/stale-deal-nudge completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Alert owners on aging opportunities\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "f7adced0-56ae-46f4-9e12-1fa15c60df41",
+      "name": "Finish stale-deal-nudge",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +153,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "e63f25a7-e92c-4c34-8dfc-48711ba4a245",
+      "id": "ff31347e-1942-4e56-ac94-5aa683644b38",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +168,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read opportunity",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read opportunity": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Aging deal?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Aging deal?": {
+      "main": [
+        [
+          {
+            "node": "Nudge owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip healthy deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nudge owner": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip healthy deal": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish stale-deal-nudge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish stale-deal-nudge": {
       "main": [
         [
           {

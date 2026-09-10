@@ -83,7 +83,7 @@ npm run dev
 
 ```text
 src/                 Master Next.js app (catalog, desks, engine adapters)
-n8n/                 Seeded n8n workflow JSON (CRM, Email, Slack, WhatsApp)
+n8n/workflows-live   Unique Live n8n graphs (CRM, Email, Slack, WhatsApp)
 kestra/              Kestra masters (Invoice, KB, Docs + extras)
 temporal-worker/     Temporal workflows + HTTP bridge :8099
 workers/ap-bridge    Recruitment + Support webhooks :8091
@@ -100,7 +100,7 @@ docker-compose.yml   Local engines
 | Script | Purpose |
 |--------|---------|
 | `npm run dev` | Master UI |
-| `npm run seed:n8n` | Import Live n8n webhooks |
+| `npm run seed:n8n` | Generate unique Live graphs + import/publish into n8n |
 | `npm run seed:kestra` | Import Kestra masters |
 | `npm run generate:kestra` | Regenerate Kestra YAML |
 | `npm run workers:ap` | ActivePieces-compatible bridge |
@@ -112,7 +112,7 @@ docker-compose.yml   Local engines
 
 Copy `.env.example` → `.env`. **Do not commit `.env` or paste tokens in git.**
 
-Until WhatsApp / Gmail / Slack tokens are set, n8n workflows still run and return stub “accepted” payloads. Add keys later to send for real.
+Until WhatsApp / Gmail / Slack tokens are set, n8n workflows still run and return stub “accepted” payloads. Add keys later to send for real. Each Live canvas has a different graph (branches, merges, or step sequences)—not clones of one template. Regenerate JSON with `N8N_JSON_ONLY=1 npm run seed:n8n`.
 
 ---
 

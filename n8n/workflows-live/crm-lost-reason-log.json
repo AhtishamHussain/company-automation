@@ -8,42 +8,71 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "be96aeb9-cbc1-4a2d-90e1-5407acb4ff4a",
+      "id": "8ecf06ad-56c5-4546-a53c-a02402f6e337",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "b364ace7-4ae4-48c7-9622-ae70c536fa5a"
+      "webhookId": "323c7952-8aa1-4c8e-9876-abbac9c5b8b7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "3c856b7e-9943-45fb-b81f-4a6024da38cc",
+      "name": "Read lost deal",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5e76a0c8-dd9e-4a55-85e9-7b02c767da5f",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "56416448-7e51-4c9f-8b16-6da1c15caf02",
+      "name": "Reason filled?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "d0f79947-11fb-4cad-8fff-883d075c44c5",
-              "name": "masterWorkflowId",
-              "value": "crm-lost-reason-log",
-              "type": "string"
-            },
-            {
-              "id": "6a27e81e-7f49-472b-a6f2-3a6f72f511eb",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-lost-reason-log",
-              "type": "string"
-            },
-            {
-              "id": "af3ea86c-99dc-4a5d-98d0-aa7625efca4d",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "defe98ab-ea4e-4351-812d-0f54f7a46a33",
-              "name": "action",
-              "value": "lost-reason-log",
+              "id": "ecb87e75-0600-48a0-bc38-de54efa464ad",
+              "name": "logged",
+              "value": "true",
               "type": "string"
             }
           ]
@@ -52,26 +81,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "dd45aa9d-2234-4721-845e-c0c831c9cfdc",
-      "name": "Master metadata",
+      "id": "e6fb8e8c-5ed7-4038-899c-6c43b658b928",
+      "name": "Store loss reason",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-lost-reason-log',\n    category: 'crm',\n    action: 'lost-reason-log',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/lost-reason-log completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99024e26-20d6-4402-a1db-ab87ccd6b262",
+              "name": "logged",
+              "value": "blocked",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "0f2a78cb-ca2c-47fd-a63b-67ee704b59e2",
-      "name": "Process + stub integration",
+      "id": "01b23db2-1f1b-4a9c-8093-b681f1d93e49",
+      "name": "Require reason",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "0855486d-9364-49d3-81e7-535812f7c692",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-lost-reason-log',\n  engineWorkflowRef: 'live-crm-lost-reason-log',\n  category: 'crm',\n  action: 'lost-reason-log',\n  message: 'Master crm/lost-reason-log completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Require and summarize loss reasons\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "6d707f67-d8c4-434d-8ce5-4892c25d5031",
+      "name": "Finish lost-reason-log",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +147,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "ea8480f2-bd6e-48fb-8d00-082a91a0d104",
+      "id": "be95273a-930e-4b7c-8089-f9dcfe2e2a7b",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +162,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read lost deal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read lost deal": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Reason filled?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Reason filled?": {
+      "main": [
+        [
+          {
+            "node": "Store loss reason",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Require reason",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store loss reason": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Require reason": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish lost-reason-log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish lost-reason-log": {
       "main": [
         [
           {

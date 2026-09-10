@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "b77e6849-d9d4-4782-a5b2-579508d2896d",
+      "id": "4bdfaa1d-9584-47d4-abf1-9871e8c4a92b",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "a001da79-1748-4834-9691-73d07f2a4a34"
+      "webhookId": "b521d2d1-2d76-4556-a17c-2dc53baf72e4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "d366c742-33b4-4a70-9965-fa96ddfda4f7",
+      "name": "Read account",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        400
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "74b5ff52-1df4-4c31-b2c8-b8e91a36cccd",
-              "name": "masterWorkflowId",
-              "value": "crm-account-enrich",
-              "type": "string"
-            },
-            {
-              "id": "b3c8dfdd-d9d0-4388-a466-2797f0dd1a14",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-account-enrich",
-              "type": "string"
-            },
-            {
-              "id": "d31dbc4c-5b49-4575-ad72-ef0d4c964a89",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "7a3851c3-5810-466a-85e0-490902e641ca",
-              "name": "action",
-              "value": "account-enrich",
+              "id": "a942b43c-e305-4d42-ab2a-a91e4bef005c",
+              "name": "domain",
+              "value": "={{ $json.company || $json.email || 'unknown' }}",
               "type": "string"
             }
           ]
@@ -52,26 +47,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "8701cc96-f28c-4d8b-89b5-f993ee64b523",
-      "name": "Master metadata",
+      "id": "b1c2e370-f44a-4095-bc7e-4811093ddbfe",
+      "name": "Pull company domain",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        540,
+        400
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-account-enrich',\n    category: 'crm',\n    action: 'account-enrich',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/account-enrich completed on n8n',\n  }\n}];"
+        "jsCode": "const j=$input.first().json||{};\nreturn [{json:{...j, industry:'software', employees:50, enricher:'stub-clearbit'}}];"
       },
-      "id": "bc91b2aa-d282-4f06-90c1-88bc739a8a10",
-      "name": "Process + stub integration",
+      "id": "15f35aee-c1fa-4ede-97e9-3b46fb454020",
+      "name": "Firmographic stub",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        820,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "73dee69f-a13b-4e4a-9afb-83a34945e358",
+              "name": "fitScore",
+              "value": "72",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "d3ab2a4b-f26d-4419-9553-d679dccc85dc",
+      "name": "Score account",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-account-enrich',\n  engineWorkflowRef: 'live-crm-account-enrich',\n  category: 'crm',\n  action: 'account-enrich',\n  message: 'Master crm/account-enrich completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Enrich company record from firmographics\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "f508a70d-8951-4e89-8452-fcdf98617e35",
+      "name": "Finish account-enrich",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "2397544b-afb2-4e29-a0f0-a79f8ac07a34",
+      "id": "4b97cbde-3b13-483d-8993-4274a2de1221",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read account",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read account": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Pull company domain",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Pull company domain": {
+      "main": [
+        [
+          {
+            "node": "Firmographic stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firmographic stub": {
+      "main": [
+        [
+          {
+            "node": "Score account",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score account": {
+      "main": [
+        [
+          {
+            "node": "Finish account-enrich",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish account-enrich": {
       "main": [
         [
           {

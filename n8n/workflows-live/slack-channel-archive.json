@@ -8,42 +8,71 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "46059e1e-2a0b-4d52-a2b4-af2aa6ac2704",
+      "id": "b97cf4bb-8b2d-4e5d-84a8-bb04a304bcb3",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "00f60bc6-dc05-42f8-9c7b-7eb9d927cc64"
+      "webhookId": "309007f6-d755-4c63-921d-0d297ba67e8f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "a73801dc-ff2b-4d69-aa4c-95c0cbd82e53",
+      "name": "Scan channels",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "17551be2-f9eb-40de-8460-e6fccff9c96e",
+              "leftValue": "={{ $json.channel }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e9a07e75-d67f-4632-97fe-c2764f7a7e24",
+      "name": "Inactive?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "d3b1bb23-5388-4b7c-a344-f447bd246705",
-              "name": "masterWorkflowId",
-              "value": "slack-channel-archive",
-              "type": "string"
-            },
-            {
-              "id": "9ce19730-521a-4662-903e-eafd77d97bb5",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-channel-archive",
-              "type": "string"
-            },
-            {
-              "id": "331e40f7-ee30-42a9-9a86-6742f2e3e761",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "c806c5e8-0222-442e-8303-878c072f8303",
-              "name": "action",
-              "value": "channel-archive",
+              "id": "7b48cc59-25f8-4ba9-aaba-9e6ec822b376",
+              "name": "archive",
+              "value": "true",
               "type": "string"
             }
           ]
@@ -52,26 +81,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "074d1ec4-53a7-4632-8f79-1e7a28c12cdf",
-      "name": "Master metadata",
+      "id": "a860890c-cefa-4c65-b44c-525ba4748271",
+      "name": "Archive channel stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-channel-archive',\n    category: 'slack',\n    action: 'channel-archive',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/channel-archive completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90ef8d24-2c8b-4944-b5c3-c825e7cf8ce9",
+              "name": "archive",
+              "value": "false",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "d01c1e9c-a3cc-49c3-905a-fdcec3bf2451",
-      "name": "Process + stub integration",
+      "id": "dcb951ef-736d-43d5-8da6-1e3158c8f204",
+      "name": "Keep channel",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "687bf015-09f2-45f0-a459-5c7790284ade",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-channel-archive',\n  engineWorkflowRef: 'live-slack-channel-archive',\n  category: 'slack',\n  action: 'channel-archive',\n  message: 'Master slack/channel-archive completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Archive inactive project channels\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "96de143e-6f0d-433c-9b4b-07f76009f8ae",
+      "name": "Finish channel-archive",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +147,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "0aa10204-574f-4ab4-89cd-9e77bf4f1eb9",
+      "id": "875a2e0e-5d54-4f54-9e35-212a141bb7d6",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +162,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Scan channels",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Scan channels": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Inactive?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Inactive?": {
+      "main": [
+        [
+          {
+            "node": "Archive channel stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Keep channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive channel stub": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep channel": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish channel-archive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish channel-archive": {
       "main": [
         [
           {

@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "bc9910dd-cb38-4a66-9c81-ce13926ecbe5",
+      "id": "eef361ab-2de8-4db6-85c0-bef3b0015e52",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "d60f2678-46c1-4d69-8f9f-b0bd139a936f"
+      "webhookId": "e92a86ea-9391-4c57-abcc-f4e8115e3d55"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "d78e8b4c-087b-4b19-aed1-f30b96f82bf2",
+      "name": "Read snapshot request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{};\nreturn [{json:{...j, open:12, won:3, lost:2, coverage:1.4}}];"
+      },
+      "id": "9788a7c8-21f5-4e4b-81ce-c7107e97fcda",
+      "name": "Tally pipeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        160
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "e5d085ec-3b32-4bbc-a1b3-25b7f2862360",
-              "name": "masterWorkflowId",
-              "value": "crm-pipeline-snapshot",
-              "type": "string"
-            },
-            {
-              "id": "21565246-91ff-4808-ac96-5a9572560ff5",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-pipeline-snapshot",
-              "type": "string"
-            },
-            {
-              "id": "41cffdb9-1736-4749-bc86-8f4967cef617",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "2908caa2-8d00-4e0e-ae9a-2ec933059f5d",
-              "name": "action",
-              "value": "pipeline-snapshot",
+              "id": "006ff8d0-79a1-4092-b579-35531e55b060",
+              "name": "report",
+              "value": "daily-pipeline",
               "type": "string"
             }
           ]
@@ -52,26 +60,39 @@
           "includeOtherFields": true
         }
       },
-      "id": "8fe9b061-9f38-456a-bb7f-5a251c7cb80a",
-      "name": "Master metadata",
+      "id": "315ae659-f4ca-4548-89a0-b1a2959128a0",
+      "name": "Format metrics",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        160
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-pipeline-snapshot',\n    category: 'crm',\n    action: 'pipeline-snapshot',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/pipeline-snapshot completed on n8n',\n  }\n}];"
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, delivered:'metrics-stub'}}];"
       },
-      "id": "fd3837b1-d2a7-47aa-bc2a-222adc1e11b6",
-      "name": "Process + stub integration",
+      "id": "e4b397d7-6413-4ac2-964f-419d9524c8c2",
+      "name": "Attach to digest",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1100,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-pipeline-snapshot',\n  engineWorkflowRef: 'live-crm-pipeline-snapshot',\n  category: 'crm',\n  action: 'pipeline-snapshot',\n  message: 'Master crm/pipeline-snapshot completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Daily pipeline metrics snapshot\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "3d628245-ba36-484c-8e03-d71a53c7446a",
+      "name": "Finish pipeline-snapshot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +101,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "00c050eb-378c-482c-9d99-6ffe26a717c7",
+      "id": "ec44b269-bf25-4629-8f04-12494b18fd57",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +116,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read snapshot request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read snapshot request": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Tally pipeline",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Tally pipeline": {
+      "main": [
+        [
+          {
+            "node": "Format metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format metrics": {
+      "main": [
+        [
+          {
+            "node": "Attach to digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach to digest": {
+      "main": [
+        [
+          {
+            "node": "Finish pipeline-snapshot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish pipeline-snapshot": {
       "main": [
         [
           {

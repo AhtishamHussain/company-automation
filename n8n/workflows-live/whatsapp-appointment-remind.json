@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "e81a485d-bd3d-46d9-b932-a4de817ea469",
+      "id": "0abcddc3-28a2-4aea-acc5-716fb28da0fd",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "9f8695ae-c873-47e3-84d6-f605268a93d1"
+      "webhookId": "2d052346-13cc-460b-99d2-78d34aedcdb7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "ee5de3f8-2e6d-43c5-bb6b-770e25313f5d",
+      "name": "Calendar due",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        200
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "5b920724-0442-4e67-9786-263710a52e0d",
-              "name": "masterWorkflowId",
-              "value": "whatsapp-appointment-remind",
-              "type": "string"
-            },
-            {
-              "id": "318de92a-4d66-447c-8271-0f6f952c83da",
-              "name": "engineWorkflowRef",
-              "value": "live-whatsapp-appointment-remind",
-              "type": "string"
-            },
-            {
-              "id": "b9aa977b-deb9-44bf-af94-fbf81bdc2182",
-              "name": "category",
-              "value": "whatsapp",
-              "type": "string"
-            },
-            {
-              "id": "b66ab59d-b024-4885-afbd-9f5e034a9bde",
-              "name": "action",
-              "value": "appointment-remind",
+              "id": "fe831cd1-968d-4416-b3fa-ef7d839a031d",
+              "name": "hoursAhead",
+              "value": "24",
               "type": "string"
             }
           ]
@@ -52,26 +47,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "bce4cbf8-d381-4612-a92a-b95b2d4be159",
-      "name": "Master metadata",
+      "id": "924de2c6-5630-43ad-9428-6316a1be3d24",
+      "name": "When is appointment",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        540,
+        200
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-appointment-remind',\n    category: 'whatsapp',\n    action: 'appointment-remind',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/appointment-remind completed on n8n',\n  }\n}];"
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, body:'Reminder: appointment tomorrow'}}];"
       },
-      "id": "6462caeb-a8c4-4212-b202-6ddfea2afa3e",
-      "name": "Process + stub integration",
+      "id": "9b735fb8-16fd-49cc-97fb-b6095a71914e",
+      "name": "Build reminder text",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        820,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4cbe908e-d798-4f75-9393-a2e225ffa696",
+              "name": "to",
+              "value": "={{ $json.to || $json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "a9beb5e4-a0be-4d6b-810a-038fa593b63c",
+      "name": "Send reminder stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'whatsapp-appointment-remind',\n  engineWorkflowRef: 'live-whatsapp-appointment-remind',\n  category: 'whatsapp',\n  action: 'appointment-remind',\n  message: 'Master whatsapp/appointment-remind completed on n8n',\n  detail: j,\n  integration: { provider: 'whatsapp-flow', status: 'accepted', note: \"Remind customers before appointments\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "cfe22100-5781-4968-993f-e4f339e9d91b",
+      "name": "Finish appointment-remind",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "a93ded40-77a1-48a5-a22f-f332593c0d89",
+      "id": "c9a68aa0-6241-4be6-b49a-9ad7ed0ba8ae",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Calendar due",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Calendar due": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "When is appointment",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "When is appointment": {
+      "main": [
+        [
+          {
+            "node": "Build reminder text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build reminder text": {
+      "main": [
+        [
+          {
+            "node": "Send reminder stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send reminder stub": {
+      "main": [
+        [
+          {
+            "node": "Finish appointment-remind",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish appointment-remind": {
       "main": [
         [
           {

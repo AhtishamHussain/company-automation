@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "b954a30e-e269-4b09-bef9-2f86826d4635",
+      "id": "61e55e1a-fcf9-4628-bcdb-c4a8d3a07689",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "17e2cff0-5c60-4a29-b8aa-03e4940a5097"
+      "webhookId": "11756adc-15c9-495d-8769-3af5aa9f4b98"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "95c30dd4-d489-478a-8001-d8c018ee7d35",
+      "name": "New user event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        100
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "f4a3b579-560a-4073-897d-d8ca70aedf40",
-              "name": "masterWorkflowId",
-              "value": "email-welcome-sequence",
-              "type": "string"
-            },
-            {
-              "id": "7b833659-bb38-4238-91e4-2eba97d7edda",
-              "name": "engineWorkflowRef",
-              "value": "live-email-welcome-sequence",
-              "type": "string"
-            },
-            {
-              "id": "8589d83c-86ea-4d9e-bf6f-b65119871fad",
-              "name": "category",
-              "value": "email",
-              "type": "string"
-            },
-            {
-              "id": "658f0a2b-1ca6-473a-b7fa-79e1f0fcd069",
-              "name": "action",
-              "value": "welcome-sequence",
+              "id": "4fb70267-ca61-46ab-ab84-ce82f90fd1bc",
+              "name": "template",
+              "value": "welcome-1",
               "type": "string"
             }
           ]
@@ -52,26 +47,76 @@
           "includeOtherFields": true
         }
       },
-      "id": "4a413a50-c506-4fbb-a6f2-dd0e0d865556",
-      "name": "Master metadata",
+      "id": "5cae313a-64ef-49d9-ad54-007b25558fa7",
+      "name": "Email 1 · Welcome",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        520,
+        40
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-welcome-sequence',\n    category: 'email',\n    action: 'welcome-sequence',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/welcome-sequence completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e4172c8-a8d9-4a99-aabf-8058e40db6a2",
+              "name": "template",
+              "value": "welcome-2",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "26772726-deea-45fc-8eab-8079d9617bd8",
-      "name": "Process + stub integration",
+      "id": "30a9128b-5f96-44b8-9b75-1a2928ad0c51",
+      "name": "Email 2 · Product tour",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4ef4832b-354e-4160-bfab-a43a829d46f7",
+              "name": "template",
+              "value": "welcome-3",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "d50f880a-66e7-48f7-a61f-ac7ec48e1178",
+      "name": "Email 3 · Ask invite",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'email-welcome-sequence',\n  engineWorkflowRef: 'live-email-welcome-sequence',\n  category: 'email',\n  action: 'welcome-sequence',\n  message: 'Master email/welcome-sequence completed on n8n',\n  detail: j,\n  integration: { provider: 'email-flow', status: 'accepted', note: \"Multi-step welcome emails (Gmail node later)\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "01790d2d-b732-4ff2-b03e-a95581fedcc8",
+      "name": "Finish welcome-sequence",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +125,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "7d8f843e-140b-48b0-ae66-69bc52fa13a2",
+      "id": "bb999449-31cd-461f-8de8-0bc7410319ed",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +140,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "New user event",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "New user event": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Email 1 · Welcome",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Email 1 · Welcome": {
+      "main": [
+        [
+          {
+            "node": "Email 2 · Product tour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email 2 · Product tour": {
+      "main": [
+        [
+          {
+            "node": "Email 3 · Ask invite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email 3 · Ask invite": {
+      "main": [
+        [
+          {
+            "node": "Finish welcome-sequence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish welcome-sequence": {
       "main": [
         [
           {

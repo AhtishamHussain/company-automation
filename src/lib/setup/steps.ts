@@ -84,7 +84,7 @@ export const implementationSteps: ImplStep[] = [
     summary: "33 Live | workflows with unique webhook paths, published and active.",
     how: [
       "docker compose up -d n8n",
-      "npm run seed:n8n  (imports Live | workflows + publishes)",
+      "npm run seed:n8n  (unique Live graphs + import/publish)",
       "Open n8n → look for Live | CRM | Lead capture",
       "Webhook path: /webhook/live-crm-lead-capture",
     ],

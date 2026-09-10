@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "eacd65ad-1394-4dcb-98d7-ee829a436087",
+      "id": "c36f152d-b342-4222-a8fd-ad4ebe37594c",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "4ae5f813-4adb-4621-b2ac-a0efd325509f"
+      "webhookId": "81ec3253-f413-4d20-8e42-f4df31f9b3f0"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "9466fd9d-1e4c-432c-882e-551af2ce634a",
+      "name": "Order event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{};\nconst status=j.stage||j.status||'processing';\nreturn [{json:{...j, waTemplate:'order_'+status}}];"
+      },
+      "id": "f8b7ef99-361b-4c82-8ad1-990d792278e1",
+      "name": "Pick template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        40
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "4034f6a4-1e9a-47fa-9cf6-37d9cda1da83",
-              "name": "masterWorkflowId",
-              "value": "whatsapp-order-status",
-              "type": "string"
-            },
-            {
-              "id": "23346912-562a-4b2d-96cf-500b950d60ca",
-              "name": "engineWorkflowRef",
-              "value": "live-whatsapp-order-status",
-              "type": "string"
-            },
-            {
-              "id": "1b68cd96-dd9c-409c-8363-5417fd7066c3",
-              "name": "category",
-              "value": "whatsapp",
-              "type": "string"
-            },
-            {
-              "id": "bbc0f75a-99c5-478a-bb3f-680f05c39560",
-              "name": "action",
-              "value": "order-status",
+              "id": "0aadc975-cecb-49a2-93b3-4664f5b153e8",
+              "name": "orderId",
+              "value": "={{ $json.company || 'ORD-1' }}",
               "type": "string"
             }
           ]
@@ -52,26 +60,51 @@
           "includeOtherFields": true
         }
       },
-      "id": "ca008701-7d45-4cff-a8b6-06f6f991fa02",
-      "name": "Master metadata",
+      "id": "acc3f389-e694-4134-bc8b-ba9579b0ccc1",
+      "name": "Fill template vars",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        120
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-order-status',\n    category: 'whatsapp',\n    action: 'order-status',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/order-status completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90d0cfab-52fa-4c10-a332-1b8fb20805fd",
+              "name": "provider",
+              "value": "whatsapp-cloud",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "9a18fcd5-46d4-446f-a593-efa0bd4317ad",
-      "name": "Process + stub integration",
+      "id": "594b5583-b1ee-4544-9a28-6c78b737e41f",
+      "name": "Send WhatsApp stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'whatsapp-order-status',\n  engineWorkflowRef: 'live-whatsapp-order-status',\n  category: 'whatsapp',\n  action: 'order-status',\n  message: 'Master whatsapp/order-status completed on n8n',\n  detail: j,\n  integration: { provider: 'whatsapp-flow', status: 'accepted', note: \"Send order status updates on WhatsApp\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "2749dfca-1c9d-4be3-8c91-9c6ea4a3e2ea",
+      "name": "Finish order-status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "06cfe0d3-443a-4f14-b127-28bf53fbfbef",
+      "id": "12ac92c4-85ad-4b27-8de1-ec97d46a04f8",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Order event",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Order event": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Pick template",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Pick template": {
+      "main": [
+        [
+          {
+            "node": "Fill template vars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill template vars": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp stub": {
+      "main": [
+        [
+          {
+            "node": "Finish order-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish order-status": {
       "main": [
         [
           {

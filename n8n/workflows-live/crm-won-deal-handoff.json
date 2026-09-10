@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "0b8a4322-02d8-4649-aed4-6905b13ff565",
+      "id": "f371710e-c9a9-4474-8e27-1504ac56f52d",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "dc0342e5-9ab9-4e48-80fd-ede88ffc329f"
+      "webhookId": "c028a4ef-a57f-4684-8318-79fd2406793c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "15f13c6e-0f8f-4689-b069-baff2a83e87a",
+      "name": "Read closed-won",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        20
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "c99bdc1f-fc98-47c6-ba0e-81424fb4e19c",
-              "name": "masterWorkflowId",
-              "value": "crm-won-deal-handoff",
-              "type": "string"
-            },
-            {
-              "id": "9b159d5b-8845-4a42-ba55-3936623ce7b2",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-won-deal-handoff",
-              "type": "string"
-            },
-            {
-              "id": "43a81893-df79-4913-bcf4-57a8fc174c92",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "4cf3e0c6-7430-4998-958a-7e5d3f789085",
-              "name": "action",
-              "value": "won-deal-handoff",
+              "id": "3d8870ba-4c22-43a5-9c76-15134bb796cb",
+              "name": "stage",
+              "value": "won",
               "type": "string"
             }
           ]
@@ -52,26 +47,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "0191ad4a-3fc7-49f8-b338-3ce293167568",
-      "name": "Master metadata",
+      "id": "11ef076f-2ae1-40ad-a66a-483380ad4684",
+      "name": "Mark deal won",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        500,
+        20
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-won-deal-handoff',\n    category: 'crm',\n    action: 'won-deal-handoff',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/won-deal-handoff completed on n8n',\n  }\n}];"
+        "jsCode": "const j=$input.first().json||{};\nreturn [{json:{...j, tasks:['kickoff','billing','it-access']}}];"
       },
-      "id": "450d1fe3-fedd-4658-86c7-ee1a0c30aed0",
-      "name": "Process + stub integration",
+      "id": "a17dbbe8-381b-4862-bd7c-06882c31d278",
+      "name": "Create onboarding tasks",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        760,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce4c7255-3ac7-4ede-b410-0bfe2dbbc3f8",
+              "name": "queue",
+              "value": "onboarding",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "c9e121c6-0429-4ae5-947b-5e69fe82cce1",
+      "name": "Hand to CS",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-won-deal-handoff',\n  engineWorkflowRef: 'live-crm-won-deal-handoff',\n  category: 'crm',\n  action: 'won-deal-handoff',\n  message: 'Master crm/won-deal-handoff completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Create onboarding tasks after close-won\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "7b0fe1d5-4a67-40da-ab6c-96b39235b77f",
+      "name": "Finish won-deal-handoff",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "9c4ad9c4-748a-4591-a92b-42ae3da457d7",
+      "id": "731b87ec-5b5f-4633-a012-5983dabea2d1",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read closed-won",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read closed-won": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Mark deal won",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Mark deal won": {
+      "main": [
+        [
+          {
+            "node": "Create onboarding tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create onboarding tasks": {
+      "main": [
+        [
+          {
+            "node": "Hand to CS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hand to CS": {
+      "main": [
+        [
+          {
+            "node": "Finish won-deal-handoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish won-deal-handoff": {
       "main": [
         [
           {

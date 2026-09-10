@@ -2,11 +2,11 @@
  * Import clean live-* webhook workflows for all n8n catalog items.
  * Paths are unique (`live-crm-lead-capture`) so they don't collide with older stubs.
  */
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomUUID } from "node:crypto";
 import { execSync } from "node:child_process";
+import { buildUnique } from "./n8n-unique-graphs.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -52,105 +52,53 @@ const rows = [
 ];
 
 function build(category, slug, name) {
-  const masterId = `${category}-${slug}`;
-  const path = `live-${category}-${slug}`;
-  const ids = {
-    webhook: randomUUID(),
-    meta: randomUUID(),
-    process: randomUUID(),
-    respond: randomUUID(),
-  };
-
-  return {
-    name: `Live | ${category.toUpperCase()} | ${name}`,
-    nodes: [
-      {
-        parameters: {
-          httpMethod: "POST",
-          path,
-          responseMode: "responseNode",
-          options: {},
-        },
-        id: ids.webhook,
-        name: "Webhook",
-        type: "n8n-nodes-base.webhook",
-        typeVersion: 2,
-        position: [0, 0],
-        webhookId: randomUUID(),
-      },
-      {
-        parameters: {
-          jsCode: `const raw = $('Webhook').first().json || {};
-const body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))
-  ? { ...raw, ...raw.body }
-  : raw;
-return [{
-  json: {
-    ok: true,
-    engine: 'n8n',
-    masterWorkflowId: '${masterId}',
-    engineWorkflowRef: '${path}',
-    category: '${category}',
-    action: '${slug}',
-    received: {
-      name: body.name || null,
-      email: body.email || null,
-      company: body.company || null,
-      to: body.to || body.phone || null,
-      channel: body.channel || null,
-      text: body.text || body.message || null,
-      source: body.source || 'master',
-    },
-    integration: {
-      provider: 'stub',
-      status: 'accepted',
-      note: 'Replace with real ${category} integration nodes',
-      at: new Date().toISOString(),
-    },
-    message: 'Master ${category}/${slug} completed on n8n',
-  }
-}];`,
-        },
-        id: ids.process,
-        name: "Process + stub integration",
-        type: "n8n-nodes-base.code",
-        typeVersion: 2,
-        position: [300, 0],
-      },
-      {
-        parameters: {
-          respondWith: "json",
-          responseBody: "={{ $json }}",
-          options: {},
-        },
-        id: ids.respond,
-        name: "Respond to Master",
-        type: "n8n-nodes-base.respondToWebhook",
-        typeVersion: 1.1,
-        position: [560, 0],
-      },
-    ],
-    connections: {
-      Webhook: {
-        main: [[{ node: "Process + stub integration", type: "main", index: 0 }]],
-      },
-      "Process + stub integration": {
-        main: [[{ node: "Respond to Master", type: "main", index: 0 }]],
-      },
-    },
-    settings: { executionOrder: "v1" },
-  };
+  return buildUnique(category, slug, name);
 }
 
-for (const row of rows) {
+const built = rows.map((row) => {
   const wf = build(...row);
-  writeFileSync(join(outDir, `${row[0]}-${row[1]}.json`), JSON.stringify(wf, null, 2));
+  const file = `${row[0]}-${row[1]}.json`;
+  writeFileSync(join(outDir, file), JSON.stringify(wf, null, 2));
+  return { file, wf };
+});
+console.log(`Wrote ${rows.length} unique live workflows`);
+
+if (process.env.N8N_JSON_ONLY === "1") {
+  process.exit(0);
 }
-console.log(`Wrote ${rows.length} live workflows`);
 
 execSync(`docker exec ${container} mkdir -p /tmp/master-live`, { stdio: "inherit" });
-execSync(`docker exec ${container} sh -c "rm -rf /tmp/master-live/*"`, { stdio: "inherit" });
-execSync(`docker cp "${outDir}/." ${container}:/tmp/master-live/`, { stdio: "inherit" });
+try {
+  execSync(
+    `docker exec -u node ${container} n8n export:workflow --all --output=/tmp/all-workflows.json`,
+    { stdio: "inherit" },
+  );
+  execSync(
+    `docker cp ${container}:/tmp/all-workflows.json "${join(root, "scripts", "_n8n-existing.json")}"`,
+    { stdio: "inherit" },
+  );
+  const existing = JSON.parse(readFileSync(join(root, "scripts", "_n8n-existing.json"), "utf8"));
+  const arr = Array.isArray(existing) ? existing : [existing];
+  const byName = new Map();
+  for (const w of arr) {
+    if (w?.name && w?.id && !byName.has(w.name)) byName.set(w.name, w.id);
+  }
+  const importDir = join(root, "n8n", ".import-live");
+  mkdirSync(importDir, { recursive: true });
+  for (const item of built) {
+    const stamped = { ...item.wf };
+    const id = byName.get(item.wf.name);
+    if (id) stamped.id = id;
+    writeFileSync(join(importDir, item.file), JSON.stringify(stamped, null, 2));
+  }
+  console.log(`Reused ${[...byName.keys()].filter((n) => n.startsWith("Live |")).length} existing Live ids`);
+  execSync(`docker exec ${container} sh -c "rm -rf /tmp/master-live/*"`, { stdio: "inherit" });
+  execSync(`docker cp "${importDir}/." ${container}:/tmp/master-live/`, { stdio: "inherit" });
+} catch (err) {
+  console.warn("Could not stamp existing n8n ids (import may duplicate):", err.message);
+  execSync(`docker exec ${container} sh -c "rm -rf /tmp/master-live/*"`, { stdio: "inherit" });
+  execSync(`docker cp "${outDir}/." ${container}:/tmp/master-live/`, { stdio: "inherit" });
+}
 execSync(
   `docker exec -u node ${container} n8n import:workflow --input=/tmp/master-live --separate`,
   { stdio: "inherit" },

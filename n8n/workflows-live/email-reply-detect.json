@@ -8,42 +8,71 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "de292e2b-efc1-4924-9740-0a511e4db742",
+      "id": "c129050b-29e9-4fcd-8382-5ee511f97f5b",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "1d3c87c4-9ae1-43b2-9c86-d59c17a4e055"
+      "webhookId": "9cf8e7f6-f191-4c3b-9fdf-c0e99fc32453"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "d5824806-10a1-492a-bb44-87a124fb46ce",
+      "name": "Read mailbox event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4b331d53-5311-42c6-9b76-b4317ab5bf09",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "df8b4cb5-dbb4-436a-a1ac-768ce818df8a",
+      "name": "Human reply?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "c58b81d4-1b86-48f3-b9fa-eb9588b9fccd",
-              "name": "masterWorkflowId",
-              "value": "email-reply-detect",
-              "type": "string"
-            },
-            {
-              "id": "5d766cd8-f039-4dd3-868d-085e4b5291e4",
-              "name": "engineWorkflowRef",
-              "value": "live-email-reply-detect",
-              "type": "string"
-            },
-            {
-              "id": "37a66487-1c94-4537-9f6f-4dfcd1615b87",
-              "name": "category",
-              "value": "email",
-              "type": "string"
-            },
-            {
-              "id": "a8e0b17a-8b4e-40ad-a09d-30c63ef23a98",
-              "name": "action",
-              "value": "reply-detect",
+              "id": "eb9be414-ac76-4c03-aeab-2f7463b032ec",
+              "name": "sequence",
+              "value": "stopped",
               "type": "string"
             }
           ]
@@ -52,26 +81,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "d447a178-2a7c-4b92-b319-00bb3e5a25af",
-      "name": "Master metadata",
+      "id": "838db52e-43c0-40d0-833a-527760ff5054",
+      "name": "Stop sequence",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-reply-detect',\n    category: 'email',\n    action: 'reply-detect',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/reply-detect completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bcd60f59-7341-4f26-a20c-c7c2da1aa066",
+              "name": "sequence",
+              "value": "running",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "1f6ad3b0-6d59-444a-832d-5ce7772e4ef1",
-      "name": "Process + stub integration",
+      "id": "15470416-bfa0-4c41-a4e3-ae4c8f2382a7",
+      "name": "Keep sequence",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "b17c1a97-bcfc-4aea-96fb-222176e15f99",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'email-reply-detect',\n  engineWorkflowRef: 'live-email-reply-detect',\n  category: 'email',\n  action: 'reply-detect',\n  message: 'Master email/reply-detect completed on n8n',\n  detail: j,\n  integration: { provider: 'email-flow', status: 'accepted', note: \"Stop sequences on human reply\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "b14e3e1d-2009-4256-9b34-ce9109364e9c",
+      "name": "Finish reply-detect",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +147,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "44922145-15b7-4cc9-ab21-a6cbfba2eef1",
+      "id": "15654a1c-035e-4ec2-a8be-56354051feed",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +162,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read mailbox event",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read mailbox event": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Human reply?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Human reply?": {
+      "main": [
+        [
+          {
+            "node": "Stop sequence",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Keep sequence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stop sequence": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep sequence": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish reply-detect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish reply-detect": {
       "main": [
         [
           {

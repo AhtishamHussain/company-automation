@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "df06ea1e-9eaf-4249-9514-13637f5a0524",
+      "id": "dd4fd27e-9e85-423f-bd48-c3c07adb80be",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "4dbe11ce-6064-458a-9b87-ef2d29c39e06"
+      "webhookId": "462f1b6b-98f9-426e-badb-73acb81915a3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "f13b4ddc-8500-4b62-80a7-5f3d77a6bfc0",
+      "name": "Support mailbox",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{};\nreturn [{json:{...j, ticketTitle:j.subject||j.name||'New ticket', priority:'normal'}}];"
+      },
+      "id": "e15bd894-5424-4f79-9a09-8ef5d0e9e777",
+      "name": "Extract ticket fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        520
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "9f4ba8ed-3d0d-409f-9afe-57f3d8758a1f",
-              "name": "masterWorkflowId",
-              "value": "email-email-to-ticket",
-              "type": "string"
-            },
-            {
-              "id": "2fe970fc-5efa-4c6a-be18-a66169e0d66b",
-              "name": "engineWorkflowRef",
-              "value": "live-email-email-to-ticket",
-              "type": "string"
-            },
-            {
-              "id": "4f46b034-7cf4-47ab-a91a-e3b75ca18879",
-              "name": "category",
-              "value": "email",
-              "type": "string"
-            },
-            {
-              "id": "a3f0ea74-9ef7-4f9b-b355-ffe29eaa78cc",
-              "name": "action",
-              "value": "email-to-ticket",
+              "id": "606a5495-e0a9-4850-8216-af2ae5bdbab1",
+              "name": "ticketId",
+              "value": "T-1001",
               "type": "string"
             }
           ]
@@ -52,26 +60,51 @@
           "includeOtherFields": true
         }
       },
-      "id": "d313a5f9-ff56-4914-829f-a71f7ccc1a6f",
-      "name": "Master metadata",
+      "id": "11b20b81-053b-4819-ab1b-58a31a645f7a",
+      "name": "Open ticket stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        520
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-email-to-ticket',\n    category: 'email',\n    action: 'email-to-ticket',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/email-to-ticket completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1bde785-0550-4db1-bf3f-73abee687aee",
+              "name": "autoReply",
+              "value": "received",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "02a3622a-bdb2-46db-9fc3-cb84541ed81e",
-      "name": "Process + stub integration",
+      "id": "c4aa9787-a907-4aa6-9824-de8421d5ccd4",
+      "name": "Ack sender",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'email-email-to-ticket',\n  engineWorkflowRef: 'live-email-email-to-ticket',\n  category: 'email',\n  action: 'email-to-ticket',\n  message: 'Master email/email-to-ticket completed on n8n',\n  detail: j,\n  integration: { provider: 'email-flow', status: 'accepted', note: \"Convert support mail into tickets\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "706d1e21-ef18-400e-86b2-c3d6ee66a798",
+      "name": "Finish email-to-ticket",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "01c3fa8b-b2b8-43ad-8376-e4b749eaa47d",
+      "id": "4acf933f-c849-4bd1-865f-464bf96851d6",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Support mailbox",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Support mailbox": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Extract ticket fields",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Extract ticket fields": {
+      "main": [
+        [
+          {
+            "node": "Open ticket stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open ticket stub": {
+      "main": [
+        [
+          {
+            "node": "Ack sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ack sender": {
+      "main": [
+        [
+          {
+            "node": "Finish email-to-ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish email-to-ticket": {
       "main": [
         [
           {

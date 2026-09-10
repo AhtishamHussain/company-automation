@@ -8,42 +8,71 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "068662a4-5aa3-4fd7-b0ba-a0a7ac909450",
+      "id": "309509d4-a728-4e62-b647-3f810d9d269f",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "12d44561-79ed-48aa-ae37-e31e7be8514c"
+      "webhookId": "215db6d0-cbc5-4c6e-abb7-eeb9ce976f10"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "029eb258-b020-4034-a4aa-7ca966903229",
+      "name": "Read WhatsApp chat",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8fbfe22d-1c24-4343-8994-70963ae9f309",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "de21cce6-155d-4695-8d57-fc941818a43a",
+      "name": "Needs human?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "85573ecc-581d-4b5e-97fe-d4f35227d00b",
-              "name": "masterWorkflowId",
-              "value": "whatsapp-support-handoff",
-              "type": "string"
-            },
-            {
-              "id": "321650de-bd1e-4f97-a647-6f5a3d9308c9",
-              "name": "engineWorkflowRef",
-              "value": "live-whatsapp-support-handoff",
-              "type": "string"
-            },
-            {
-              "id": "add692a1-0c8d-49c6-9f48-74799b95de2b",
-              "name": "category",
-              "value": "whatsapp",
-              "type": "string"
-            },
-            {
-              "id": "568ec082-fc36-44e2-9456-4972331474f8",
-              "name": "action",
-              "value": "support-handoff",
+              "id": "2f536989-63d9-4665-8821-6e5aac671ce1",
+              "name": "queue",
+              "value": "agents",
               "type": "string"
             }
           ]
@@ -52,26 +81,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "fec548f7-5df8-4d6b-aa64-787f4aba9d07",
-      "name": "Master metadata",
+      "id": "5e7ded23-b364-4107-a2b4-e53595a7d5d0",
+      "name": "Route to agent",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-support-handoff',\n    category: 'whatsapp',\n    action: 'support-handoff',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/support-handoff completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a2bcf83-e2be-4d8c-9895-0c556ff1fb98",
+              "name": "queue",
+              "value": "bot",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "e4223327-5c5e-4bfa-bf20-7c4642d7d6ea",
-      "name": "Process + stub integration",
+      "id": "c35bd6cb-de4c-4567-a56d-1887ea7b803a",
+      "name": "Bot can continue",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "c056a408-6ddc-496e-b787-1f5cc25c7001",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'whatsapp-support-handoff',\n  engineWorkflowRef: 'live-whatsapp-support-handoff',\n  category: 'whatsapp',\n  action: 'support-handoff',\n  message: 'Master whatsapp/support-handoff completed on n8n',\n  detail: j,\n  integration: { provider: 'whatsapp-flow', status: 'accepted', note: \"Route WhatsApp chats to agents\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "54a319e3-b381-4ccc-9674-0a0e3da633c8",
+      "name": "Finish support-handoff",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +147,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "7d75a9b0-c9bd-47a5-a8ff-d63c176be407",
+      "id": "69f5f63a-d91c-41f3-b319-f6daf617d86b",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +162,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read WhatsApp chat",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read WhatsApp chat": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Needs human?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Needs human?": {
+      "main": [
+        [
+          {
+            "node": "Route to agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bot can continue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to agent": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot can continue": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish support-handoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish support-handoff": {
       "main": [
         [
           {

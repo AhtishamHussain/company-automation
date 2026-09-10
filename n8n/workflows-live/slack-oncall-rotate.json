@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "b2a19a98-9c02-43f3-8a48-82092a3ec9b4",
+      "id": "98e46c06-5f64-4b4e-a235-3b74e4fbdde0",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "13e6f3d8-9a78-4e39-8c92-c5f10410ee83"
+      "webhookId": "a21cf2fb-a6eb-48cd-a112-535670b53162"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "81d6f1aa-dc41-4796-8ea4-57e01c183647",
+      "name": "Rotation tick",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const roster=['alex','sam','riley'];\nconst j=$input.first().json||{};\nreturn [{json:{...j, oncall: roster[new Date().getDay()%3]}}];"
+      },
+      "id": "f565e077-adb1-44f0-a95c-34b23ba2ccf7",
+      "name": "Compute next on-call",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        280
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "bcd6a9a3-c065-47aa-a12d-42666a417d3d",
-              "name": "masterWorkflowId",
-              "value": "slack-oncall-rotate",
-              "type": "string"
-            },
-            {
-              "id": "23a64eb8-886e-47fc-b89a-577cba14e52b",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-oncall-rotate",
-              "type": "string"
-            },
-            {
-              "id": "d28efa38-8a0b-49bf-ab75-17f50bae952e",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "ba5ccd1c-f670-4753-a9ee-ca082b05cbe2",
-              "name": "action",
-              "value": "oncall-rotate",
+              "id": "b2e97ef3-5279-4920-9718-022c1cc7fea7",
+              "name": "group",
+              "value": "oncall",
               "type": "string"
             }
           ]
@@ -52,26 +60,51 @@
           "includeOtherFields": true
         }
       },
-      "id": "0d6a49c9-ba6e-4c7a-abfc-14876461392a",
-      "name": "Master metadata",
+      "id": "7e278c9b-70be-45cb-b9d1-5880e580e301",
+      "name": "Update @oncall group",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        200
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-oncall-rotate',\n    category: 'slack',\n    action: 'oncall-rotate',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/oncall-rotate completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1637aedb-fca5-4fdf-be7a-632faa1e3416",
+              "name": "channel",
+              "value": "#oncall",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "9e631631-b6ee-4357-99e0-aefe0d6b6e14",
-      "name": "Process + stub integration",
+      "id": "29344f7d-821b-4a8e-9aa4-36cc45dbb746",
+      "name": "Announce rotation",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-oncall-rotate',\n  engineWorkflowRef: 'live-slack-oncall-rotate',\n  category: 'slack',\n  action: 'oncall-rotate',\n  message: 'Master slack/oncall-rotate completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Update on-call group weekly\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "58d74f80-e94f-40ea-ad12-29c1dc59b7f5",
+      "name": "Finish oncall-rotate",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "1410dc61-a695-4834-9e06-d8a6159891e4",
+      "id": "8c3b1f91-fc2c-4a35-b0e5-49ecb80f5551",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Rotation tick",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Rotation tick": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Compute next on-call",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Compute next on-call": {
+      "main": [
+        [
+          {
+            "node": "Update @oncall group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update @oncall group": {
+      "main": [
+        [
+          {
+            "node": "Announce rotation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Announce rotation": {
+      "main": [
+        [
+          {
+            "node": "Finish oncall-rotate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish oncall-rotate": {
       "main": [
         [
           {

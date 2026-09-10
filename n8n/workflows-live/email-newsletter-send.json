@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "fda15eab-6436-4ca8-aeef-53c07f2bc281",
+      "id": "a3198fb0-a41d-4c08-879b-c83ff17e23af",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "f105cd37-26c6-4123-bfb0-4e557912eba0"
+      "webhookId": "d78ade66-77fc-4959-84d8-4090b1838dba"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "b298990b-9444-489c-965e-0b59b1061aed",
+      "name": "Campaign payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, recipients:120, segment:'active'}}];"
+      },
+      "id": "8006365b-c2bf-4dab-97fd-5e1e4a8f1ed8",
+      "name": "Load segment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        360
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "b13cb22a-d3c1-4497-9dd7-b8403c8c0990",
-              "name": "masterWorkflowId",
-              "value": "email-newsletter-send",
-              "type": "string"
-            },
-            {
-              "id": "e70bbdbc-41d0-4a6f-ada5-5c04e7bbd6cf",
-              "name": "engineWorkflowRef",
-              "value": "live-email-newsletter-send",
-              "type": "string"
-            },
-            {
-              "id": "33d1a379-8582-40fd-9f1c-6bcbc9983c8d",
-              "name": "category",
-              "value": "email",
-              "type": "string"
-            },
-            {
-              "id": "f6513015-6a4a-419c-bc47-e8cc7c1c8c08",
-              "name": "action",
-              "value": "newsletter-send",
+              "id": "3044e881-4ae9-4e0a-b7da-313626955278",
+              "name": "template",
+              "value": "newsletter",
               "type": "string"
             }
           ]
@@ -52,26 +60,51 @@
           "includeOtherFields": true
         }
       },
-      "id": "2c6bc31a-2a8d-4e20-b582-0ca1d0d25471",
-      "name": "Master metadata",
+      "id": "143e04dc-794b-4ba5-88c6-b9c4b061249a",
+      "name": "Render newsletter",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        300
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-newsletter-send',\n    category: 'email',\n    action: 'newsletter-send',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/newsletter-send completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9677072c-f2a0-42fa-a8a6-337d32e331fd",
+              "name": "provider",
+              "value": "gmail-or-resend",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "005fab73-ac10-47a8-b605-1657f5add4e2",
-      "name": "Process + stub integration",
+      "id": "1010cd9e-512e-4b71-a650-672ae0461087",
+      "name": "Send batch stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'email-newsletter-send',\n  engineWorkflowRef: 'live-email-newsletter-send',\n  category: 'email',\n  action: 'newsletter-send',\n  message: 'Master email/newsletter-send completed on n8n',\n  detail: j,\n  integration: { provider: 'email-flow', status: 'accepted', note: \"Segment and send newsletters\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "58908482-c570-47e0-bf6b-65c14d37f415",
+      "name": "Finish newsletter-send",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "9dce7a30-4405-4f74-89ab-de8341aede3f",
+      "id": "18e0ba42-1bfa-4a9b-a954-573840e84a78",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Campaign payload",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Campaign payload": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Load segment",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Load segment": {
+      "main": [
+        [
+          {
+            "node": "Render newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render newsletter": {
+      "main": [
+        [
+          {
+            "node": "Send batch stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send batch stub": {
+      "main": [
+        [
+          {
+            "node": "Finish newsletter-send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish newsletter-send": {
       "main": [
         [
           {

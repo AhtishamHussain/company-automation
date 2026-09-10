@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "d61c0676-f22b-4711-a86b-c545130f7db6",
+      "id": "436c070d-9f7d-4f01-9575-17c34f06571f",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "3693b897-a779-416e-a71b-8c8035048c06"
+      "webhookId": "0e5986d9-e4ce-4b4b-a589-ef24a8b1866e"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "2839d6fb-4291-47ba-bb07-0c4e0ea7c556",
+      "name": "Inbound WhatsApp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{};\nreturn [{json:{...j, questions:['budget','timeline','authority']}}];"
+      },
+      "id": "6e291c74-120f-49c2-9958-9887c4402e31",
+      "name": "Ask qualifying questions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        420
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "9bfd803c-2c63-4753-ae1f-96280badcb1c",
-              "name": "masterWorkflowId",
-              "value": "whatsapp-lead-qualify",
-              "type": "string"
-            },
-            {
-              "id": "4a90caff-b93d-4369-9b98-de91462ecacb",
-              "name": "engineWorkflowRef",
-              "value": "live-whatsapp-lead-qualify",
-              "type": "string"
-            },
-            {
-              "id": "199e3f07-e5d3-4653-bfb0-d34e0e276e00",
-              "name": "category",
-              "value": "whatsapp",
-              "type": "string"
-            },
-            {
-              "id": "945fbe8a-c3f3-49b5-a818-24c91f845727",
-              "name": "action",
-              "value": "lead-qualify",
+              "id": "57fc130b-bfbe-4df7-8e75-f5e6e56baed2",
+              "name": "score",
+              "value": "60",
               "type": "string"
             }
           ]
@@ -52,26 +60,51 @@
           "includeOtherFields": true
         }
       },
-      "id": "5dc565b6-688f-47ab-b512-9953b231154b",
-      "name": "Master metadata",
+      "id": "2af3dacf-332a-472b-ad6e-6a9409ea8b73",
+      "name": "Score answers stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        500
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-lead-qualify',\n    category: 'whatsapp',\n    action: 'lead-qualify',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/lead-qualify completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90e434a7-156f-4ccc-99f7-090b6b4e7329",
+              "name": "crm",
+              "value": "lead",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "6593d114-2653-4130-9a29-af95349545f6",
-      "name": "Process + stub integration",
+      "id": "957f0015-1336-498e-9350-61e375f2e23b",
+      "name": "Push to CRM stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'whatsapp-lead-qualify',\n  engineWorkflowRef: 'live-whatsapp-lead-qualify',\n  category: 'whatsapp',\n  action: 'lead-qualify',\n  message: 'Master whatsapp/lead-qualify completed on n8n',\n  detail: j,\n  integration: { provider: 'whatsapp-flow', status: 'accepted', note: \"Qualifying questions via WhatsApp\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "8fac13a9-599a-4e31-b770-1711b3c5bc23",
+      "name": "Finish lead-qualify",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "18be7e05-974b-447b-be29-854b06cade1d",
+      "id": "5bdbb424-1c02-47a6-9360-beff64f9adbd",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Inbound WhatsApp",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Inbound WhatsApp": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Ask qualifying questions",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Ask qualifying questions": {
+      "main": [
+        [
+          {
+            "node": "Score answers stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score answers stub": {
+      "main": [
+        [
+          {
+            "node": "Push to CRM stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to CRM stub": {
+      "main": [
+        [
+          {
+            "node": "Finish lead-qualify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish lead-qualify": {
       "main": [
         [
           {

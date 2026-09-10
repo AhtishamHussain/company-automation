@@ -12,7 +12,7 @@ In-app guide: http://localhost:3000/setup
 |------|--------|
 | Master Next.js app | 12 domain desks, run history, engines health |
 | 100 workflows catalogued | `src/lib/workflows/catalog.ts` |
-| n8n | 33 Live webhooks (CRM, Email, Slack, WhatsApp) |
+| n8n | 33 unique Live canvases (CRM, Email, Slack, WhatsApp) |
 | Kestra | Invoice + KB + Docs masters (plus 10 extra department masters) |
 | Temporal | 9 HR workflows via worker + HTTP bridge `:8099` |
 | ActivePieces | Local bridge `:8091` — Recruitment + Support (17) |

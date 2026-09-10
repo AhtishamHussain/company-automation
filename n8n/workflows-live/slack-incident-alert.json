@@ -8,42 +8,71 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "4fef1279-8f86-439d-bbf0-773a6237741e",
+      "id": "f03c9b7c-0d52-4a87-ad63-4cd44c3164f9",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "5d369700-36c2-4283-abfb-2b46bffe0c37"
+      "webhookId": "2b466e5a-ea98-4d60-8f91-ba4c5ee266d4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "d985f371-04a7-4c0f-967f-fcd914e98e10",
+      "name": "Read alert payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bf00fea6-b171-4e03-adab-b09f4b9bae26",
+              "leftValue": "={{ $json.severity }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "06dd567e-568b-4f5a-a470-8db0c75fd3ab",
+      "name": "Severity critical?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "9ed2750c-8f80-4cce-9852-ed6d72ff5c0f",
-              "name": "masterWorkflowId",
-              "value": "slack-incident-alert",
-              "type": "string"
-            },
-            {
-              "id": "933f41db-e66a-4d13-995e-74bb0b8a0634",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-incident-alert",
-              "type": "string"
-            },
-            {
-              "id": "528da193-0ee2-4534-bce7-d007bd08fcd7",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "42c7f94c-d9ac-42e6-8cc8-490a0368c156",
-              "name": "action",
-              "value": "incident-alert",
+              "id": "7156eed8-9f83-4380-8d60-8491dd16e1f4",
+              "name": "page",
+              "value": "true",
               "type": "string"
             }
           ]
@@ -52,26 +81,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "50bf5ac2-bb7d-41e0-be5b-55b0b289ab17",
-      "name": "Master metadata",
+      "id": "6f650372-547f-4839-a42d-e17cc55595b5",
+      "name": "Page #incidents",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-incident-alert',\n    category: 'slack',\n    action: 'incident-alert',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/incident-alert completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a680eab2-b3e1-4fc6-bcb3-72df0e1dc6fd",
+              "name": "page",
+              "value": "false",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "32efda11-7346-4be2-ae5a-80e666a9df92",
-      "name": "Process + stub integration",
+      "id": "0aacaa74-8e65-44d4-8ff2-163f6fc8aa6b",
+      "name": "Log to #ops",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "ba78a809-f391-40f1-aae0-8573aefb0bf3",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-incident-alert',\n  engineWorkflowRef: 'live-slack-incident-alert',\n  category: 'slack',\n  action: 'incident-alert',\n  message: 'Master slack/incident-alert completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Page channel on critical alerts (Slack node later)\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "267f1ddd-a4ce-4859-b47b-89997446aa97",
+      "name": "Finish incident-alert",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +147,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "fa33bdd3-fc85-40a7-ac22-4596a633a258",
+      "id": "991ba0f2-58ca-4d4e-940d-9a85e05b759b",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +162,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read alert payload",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read alert payload": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Severity critical?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Severity critical?": {
+      "main": [
+        [
+          {
+            "node": "Page #incidents",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log to #ops",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page #incidents": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to #ops": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish incident-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish incident-alert": {
       "main": [
         [
           {

@@ -8,42 +8,63 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "c4fcfd47-65f0-48f1-b39c-c014efafd78e",
+      "id": "191a793e-cdf3-49e4-a5bb-e6923c5d9d4e",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "4fdaf536-8b1f-43ce-ab52-f35dc905efee"
+      "webhookId": "88eb77da-a8ed-4cca-93c8-0907c8877cdb"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "c216c91d-b7d9-4d3b-bc0f-4df386c952d9",
+      "name": "Load contacts batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{};\nconst name=String(j.name||'').toLowerCase().trim();\nreturn [{json:{...j, normName:name, fingerprint:name+'|'+(j.email||'')}}];"
+      },
+      "id": "8bb01ba4-ade9-4123-beb4-d2a2bd9503af",
+      "name": "Normalize names",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{};\nreturn [{json:{...j, duplicate: Boolean(j.email), mergePolicy:'keep-oldest'}}];"
+      },
+      "id": "93c59f26-8772-495e-9f7e-c64409739cfc",
+      "name": "Find duplicate keys",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        560
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "cb364470-13d0-4ce1-a1d2-465993adee98",
-              "name": "masterWorkflowId",
-              "value": "crm-contact-dedupe",
-              "type": "string"
-            },
-            {
-              "id": "d8450c75-dc18-439d-9c2c-39c9d45b0b74",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-contact-dedupe",
-              "type": "string"
-            },
-            {
-              "id": "8403f33f-1fe4-498e-a123-4958c1574172",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "aeb33e26-2699-4a7e-9dee-64c24c25e9c4",
-              "name": "action",
-              "value": "contact-dedupe",
+              "id": "62af6eb9-30d6-445a-85b9-90694d051212",
+              "name": "merged",
+              "value": "queued",
               "type": "string"
             }
           ]
@@ -52,26 +73,26 @@
           "includeOtherFields": true
         }
       },
-      "id": "c7f90599-632a-40d6-8b81-e0f1cab81f09",
-      "name": "Master metadata",
+      "id": "0e4f5b18-7c1b-4237-9285-92886b72209c",
+      "name": "Safe merge stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        1100,
+        560
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-contact-dedupe',\n    category: 'crm',\n    action: 'contact-dedupe',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/contact-dedupe completed on n8n',\n  }\n}];"
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-contact-dedupe',\n  engineWorkflowRef: 'live-crm-contact-dedupe',\n  category: 'crm',\n  action: 'contact-dedupe',\n  message: 'Master crm/contact-dedupe completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Merge duplicate contacts safely\", at: new Date().toISOString() }\n}}];"
       },
-      "id": "5b25db66-6668-4cea-b98c-9eadcccbf0c3",
-      "name": "Process + stub integration",
+      "id": "aefbdd41-da00-46cb-90e4-f9bf3606919b",
+      "name": "Finish contact-dedupe",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +101,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "4f6c315d-27d7-40e6-936b-3b401f5d1d1b",
+      "id": "7e0c17bb-217b-4efd-bdc8-bd920466c6e5",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +116,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Load contacts batch",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Load contacts batch": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Normalize names",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Normalize names": {
+      "main": [
+        [
+          {
+            "node": "Find duplicate keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find duplicate keys": {
+      "main": [
+        [
+          {
+            "node": "Safe merge stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Safe merge stub": {
+      "main": [
+        [
+          {
+            "node": "Finish contact-dedupe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish contact-dedupe": {
       "main": [
         [
           {

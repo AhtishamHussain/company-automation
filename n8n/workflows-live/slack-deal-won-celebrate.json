@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "7f786e63-6255-4434-b189-f222e9a8ec6a",
+      "id": "5dac68ad-9073-48ca-bf25-ed5951d1a5e2",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "564e7a15-facd-460f-95d1-5f502dd2c9b5"
+      "webhookId": "479ed349-e6d0-43a9-ba3b-18fcb44ec2a4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "f92ec468-a20b-4839-a83a-1feee26e9658",
+      "name": "Won deal event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, banner:'🎉 Deal won '+ (j.company||'')}}];"
+      },
+      "id": "8d04f5a7-4149-42ca-b94a-0bb7d6fdf0b9",
+      "name": "Format celebration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        440
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "1dd15913-d96b-462b-a439-728200ebf222",
-              "name": "masterWorkflowId",
-              "value": "slack-deal-won-celebrate",
-              "type": "string"
-            },
-            {
-              "id": "7ae8c688-7c6d-4b71-8067-d95fe291e052",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-deal-won-celebrate",
-              "type": "string"
-            },
-            {
-              "id": "7a3f7e20-509c-4db8-9999-d9b43a71b1db",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "0bb82dcf-2939-4d39-ade8-414ff8a53c60",
-              "name": "action",
-              "value": "deal-won-celebrate",
+              "id": "d8f4ffaf-c88b-4d76-a9f3-2444475e1efd",
+              "name": "channel",
+              "value": "#sales",
               "type": "string"
             }
           ]
@@ -52,26 +60,51 @@
           "includeOtherFields": true
         }
       },
-      "id": "788ecea3-d2c7-430d-9de7-b115fc8dc2d9",
-      "name": "Master metadata",
+      "id": "b2c558b8-3b53-46d7-a999-43e3a3ff577e",
+      "name": "Post #sales stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        440
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-deal-won-celebrate',\n    category: 'slack',\n    action: 'deal-won-celebrate',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/deal-won-celebrate completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e439ed0e-4426-487b-ab70-e7063c2bb403",
+              "name": "reactions",
+              "value": "tada,fire",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "d4296924-59c4-43d2-afdf-b4abca1db7f1",
-      "name": "Process + stub integration",
+      "id": "0ede5330-4fa0-4687-9329-ca767510d3a1",
+      "name": "Add emoji reactions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-deal-won-celebrate',\n  engineWorkflowRef: 'live-slack-deal-won-celebrate',\n  category: 'slack',\n  action: 'deal-won-celebrate',\n  message: 'Master slack/deal-won-celebrate completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Post wins to sales channel\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "5dd2958f-756b-446f-be35-460e095f6d7b",
+      "name": "Finish deal-won-celebrate",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "e63b9dad-3b88-499c-84f8-49a08ff9fe7f",
+      "id": "e14f06a7-2c7d-4138-93ec-b96bd3473c3f",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Won deal event",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Won deal event": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Format celebration",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Format celebration": {
+      "main": [
+        [
+          {
+            "node": "Post #sales stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post #sales stub": {
+      "main": [
+        [
+          {
+            "node": "Add emoji reactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add emoji reactions": {
+      "main": [
+        [
+          {
+            "node": "Finish deal-won-celebrate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish deal-won-celebrate": {
       "main": [
         [
           {

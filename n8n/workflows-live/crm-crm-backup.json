@@ -8,42 +8,63 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "c71e9bf7-996b-4748-9ba9-b1f4f353540c",
+      "id": "20528a37-9a44-4561-9fb3-b364ed2d71a2",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "4dbc6a92-36d9-4936-a715-98d8d86ac1a9"
+      "webhookId": "1fa1f169-31b3-4c4b-b2b6-95f06610552b"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "49ba60d7-2b13-498b-b3ee-e3389db44738",
+      "name": "Start backup job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{...($input.first().json||{}), tables:['contacts','deals']}}];"
+      },
+      "id": "78fd14f2-fc12-44b2-8d57-b5d0a7f21de1",
+      "name": "Export contacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, bytes:2048, format:'json'}}];"
+      },
+      "id": "e98230d4-60a7-4582-9bd7-ad68e58ef9da",
+      "name": "Serialize JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        320
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "1dd69f35-d159-4acd-816c-87ce2d3e773c",
-              "name": "masterWorkflowId",
-              "value": "crm-crm-backup",
-              "type": "string"
-            },
-            {
-              "id": "551a7f9c-36b2-4128-b636-ae26f1d2d4e9",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-crm-backup",
-              "type": "string"
-            },
-            {
-              "id": "2c23961a-bb30-4b91-af79-d4065d6ae197",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "6d5c70bd-8563-4d25-b813-f65568d269fa",
-              "name": "action",
-              "value": "crm-backup",
+              "id": "45fa6559-6c5b-44d9-aea5-b1499150ef99",
+              "name": "location",
+              "value": "s3://crm-backup/stub",
               "type": "string"
             }
           ]
@@ -52,26 +73,26 @@
           "includeOtherFields": true
         }
       },
-      "id": "a00dd142-669f-48e2-8e77-edf5b2d3debe",
-      "name": "Master metadata",
+      "id": "f8930abe-5d4e-4a1c-91bd-8ab3380d878b",
+      "name": "Store archive stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        1100,
+        320
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-crm-backup',\n    category: 'crm',\n    action: 'crm-backup',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/crm-backup completed on n8n',\n  }\n}];"
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-crm-backup',\n  engineWorkflowRef: 'live-crm-crm-backup',\n  category: 'crm',\n  action: 'crm-backup',\n  message: 'Master crm/crm-backup completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Nightly CRM export to object storage\", at: new Date().toISOString() }\n}}];"
       },
-      "id": "1672d022-03f0-4da0-ae4d-abfb77f933d7",
-      "name": "Process + stub integration",
+      "id": "d847042c-c343-4708-81a6-b6001b4ae7ba",
+      "name": "Finish crm-backup",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +101,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "0fa7ec5b-e851-48cf-8dfd-ee0833075083",
+      "id": "1a4a2645-751d-4827-b1fb-b4b32b596f32",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +116,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Start backup job",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Start backup job": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Export contacts",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Export contacts": {
+      "main": [
+        [
+          {
+            "node": "Serialize JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serialize JSON": {
+      "main": [
+        [
+          {
+            "node": "Store archive stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store archive stub": {
+      "main": [
+        [
+          {
+            "node": "Finish crm-backup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish crm-backup": {
       "main": [
         [
           {

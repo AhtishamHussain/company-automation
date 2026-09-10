@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "48f7a31f-0c34-4190-8f73-0c1cc23fb5b9",
+      "id": "893f2eb6-8c01-45ad-a0b3-66b89af173df",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "f6e41990-c520-45f5-a2fd-8f6e311b8f4b"
+      "webhookId": "28c4125d-49b6-4145-91ea-7880c603be85"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "40bcf143-6c2e-4741-9d83-87d2dbe525e7",
+      "name": "Read deal payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{};\nconst stage=String(j.stage||j.dealStage||'unknown');\nconst map={new:'qualified',qualified:'proposal',proposal:'negotiation',won:'closed-won',lost:'closed-lost'};\nreturn [{json:{...j, fromStage:stage, toStage:map[stage]||stage, synced:true}}];"
+      },
+      "id": "d0b0f8c6-e9f8-4957-a30e-6ebfc896ddcb",
+      "name": "Map pipeline stages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        80
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "6fdf703b-89a4-48b4-a0a8-74ba36aebee9",
-              "name": "masterWorkflowId",
-              "value": "crm-deal-stage-sync",
-              "type": "string"
-            },
-            {
-              "id": "feac3a9b-9587-4c6f-9a9f-cb120afbc01b",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-deal-stage-sync",
-              "type": "string"
-            },
-            {
-              "id": "8a4abc35-e954-41c0-9076-13efb0338e63",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "f48ed6c2-b656-4b94-9ae8-52e9e9ff2127",
-              "name": "action",
-              "value": "deal-stage-sync",
+              "id": "bee92479-6477-42b4-9742-a4c942e32a57",
+              "name": "crmObject",
+              "value": "deal",
               "type": "string"
             }
           ]
@@ -52,26 +60,39 @@
           "includeOtherFields": true
         }
       },
-      "id": "ee61b489-c485-42d5-9a9b-186abe608bda",
-      "name": "Master metadata",
+      "id": "0c212ecc-8e97-4227-a031-2a4403d84977",
+      "name": "Write stage to CRM stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-deal-stage-sync',\n    category: 'crm',\n    action: 'deal-stage-sync',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/deal-stage-sync completed on n8n',\n  }\n}];"
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, systems:['crm','billing'], okSync:true}}];"
       },
-      "id": "997d5614-3def-459f-8c34-8998a25458a1",
-      "name": "Process + stub integration",
+      "id": "1a855c47-1ce5-476c-8549-bf82b400806a",
+      "name": "Confirm both systems",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1100,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-deal-stage-sync',\n  engineWorkflowRef: 'live-crm-deal-stage-sync',\n  category: 'crm',\n  action: 'deal-stage-sync',\n  message: 'Master crm/deal-stage-sync completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Keep CRM stages aligned across tools\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "ce788a72-8b75-478a-bd01-08d03486b222",
+      "name": "Finish deal-stage-sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +101,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "13ce3b80-4ccd-4f8a-8a9f-dc5b37a25b22",
+      "id": "1ea00870-7618-42f0-b4de-1f99180984a9",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +116,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read deal payload",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read deal payload": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Map pipeline stages",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Map pipeline stages": {
+      "main": [
+        [
+          {
+            "node": "Write stage to CRM stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write stage to CRM stub": {
+      "main": [
+        [
+          {
+            "node": "Confirm both systems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm both systems": {
+      "main": [
+        [
+          {
+            "node": "Finish deal-stage-sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish deal-stage-sync": {
       "main": [
         [
           {

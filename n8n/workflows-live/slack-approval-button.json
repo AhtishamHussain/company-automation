@@ -8,42 +8,71 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "2cb698c0-59a2-44be-abb7-3ebf5c2c9ac4",
+      "id": "619fbdc7-3156-4635-b9d3-91f7cbfe6682",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "1d719448-5428-44de-831b-3e6b3bf6ff91"
+      "webhookId": "5c493e27-d26a-404e-accc-1aad979ba1c0"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "74bc14c8-3207-4420-a327-2c7f8ef1ab73",
+      "name": "Read interaction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "36fc3130-8325-4a55-821e-3d5418553680",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "96a022e2-00c6-43d6-92ef-34c45055afd5",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "1f3848d5-3941-4212-aeea-370492030148",
-              "name": "masterWorkflowId",
-              "value": "slack-approval-button",
-              "type": "string"
-            },
-            {
-              "id": "9f70433b-6f79-45a6-8866-965a0ea4fe9b",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-approval-button",
-              "type": "string"
-            },
-            {
-              "id": "b18803ce-a753-420d-a435-011fdf351afa",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "f7b9c78a-4792-49ec-ae34-7c96032f92ed",
-              "name": "action",
-              "value": "approval-button",
+              "id": "c54b5e69-e048-46d5-bd2d-5cf1faaaa55d",
+              "name": "decision",
+              "value": "approve",
               "type": "string"
             }
           ]
@@ -52,26 +81,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "adc2cd70-7429-42de-b1cd-fcff1b02ded8",
-      "name": "Master metadata",
+      "id": "3bcea8b3-3a0a-4109-ab24-470bb6c6e66b",
+      "name": "Apply approval",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-approval-button',\n    category: 'slack',\n    action: 'approval-button',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/approval-button completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0c9c37d0-a74c-473b-97ac-7150c437c41f",
+              "name": "decision",
+              "value": "reject",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "22ebdd03-524f-4c16-a63a-ff7876ea01dd",
-      "name": "Process + stub integration",
+      "id": "e56a8478-6e45-4106-9400-870cd8ce06d5",
+      "name": "Record rejection",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "5406a687-f4d5-43d2-9613-3cc5399878dd",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-approval-button',\n  engineWorkflowRef: 'live-slack-approval-button',\n  category: 'slack',\n  action: 'approval-button',\n  message: 'Master slack/approval-button completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Approve/reject via Slack interactions\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "a625f843-1ce7-4f63-a86b-a4e68fc296e6",
+      "name": "Finish approval-button",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +147,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "f91e9c7a-c2c7-4a14-a376-54fdfb3d05ea",
+      "id": "1d216bf1-2225-494d-9f51-22db14409065",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +162,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read interaction",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read interaction": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Approved?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Apply approval",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record rejection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply approval": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record rejection": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish approval-button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish approval-button": {
       "main": [
         [
           {

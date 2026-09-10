@@ -8,42 +8,63 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "48a04419-8a15-49b7-b155-c5b8bf7bdad7",
+      "id": "53c6125f-4b0a-4436-a3f2-79603cf6bcb9",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "d6b626ae-a8bf-4352-8de2-e6d10db228d5"
+      "webhookId": "38a01f56-7c4a-44bd-a5a3-4b56ae88f26c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "71692906-7288-44a7-a05c-7733197dca48",
+      "name": "Digest trigger",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, sections:['hr','sales','ops']}}];"
+      },
+      "id": "8a39af2c-6471-487c-b906-5a1470989b6f",
+      "name": "Collect sections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, html:'<h1>Daily digest</h1>'}}];"
+      },
+      "id": "7e25d429-6c6d-44a5-a0f9-ae42f3329ef0",
+      "name": "Render HTML stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        200
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "98f294e4-697c-463b-8308-9c7d4169ba8f",
-              "name": "masterWorkflowId",
-              "value": "email-digest-daily",
-              "type": "string"
-            },
-            {
-              "id": "6086b196-d1b7-4527-be5d-b6be2909d0d4",
-              "name": "engineWorkflowRef",
-              "value": "live-email-digest-daily",
-              "type": "string"
-            },
-            {
-              "id": "05641c9d-a902-4b50-bd0c-bb8a657c3b8a",
-              "name": "category",
-              "value": "email",
-              "type": "string"
-            },
-            {
-              "id": "6b8aeacb-cdee-4e9c-8910-4746f1f05325",
-              "name": "action",
-              "value": "digest-daily",
+              "id": "10989f17-9cc4-4449-b9e0-c01b6c5d98b0",
+              "name": "to",
+              "value": "={{ $json.email || 'team@company' }}",
               "type": "string"
             }
           ]
@@ -52,26 +73,26 @@
           "includeOtherFields": true
         }
       },
-      "id": "ee28c9f8-f047-4d9d-ae2d-7b2cd00a54bc",
-      "name": "Master metadata",
+      "id": "85e3bdd3-2f8e-4915-a41e-f443cfdbe375",
+      "name": "Send digest stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        1040,
+        280
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-digest-daily',\n    category: 'email',\n    action: 'digest-daily',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/digest-daily completed on n8n',\n  }\n}];"
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'email-digest-daily',\n  engineWorkflowRef: 'live-email-digest-daily',\n  category: 'email',\n  action: 'digest-daily',\n  message: 'Master email/digest-daily completed on n8n',\n  detail: j,\n  integration: { provider: 'email-flow', status: 'accepted', note: \"Compile and send team digests\", at: new Date().toISOString() }\n}}];"
       },
-      "id": "74b2e94f-028a-44fd-a248-9b9ffb29b69e",
-      "name": "Process + stub integration",
+      "id": "811bc263-0776-4cc4-a3e9-663f298a4958",
+      "name": "Finish digest-daily",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +101,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "5c0b7b83-4e26-4800-8662-29ddd14d1042",
+      "id": "3000ab88-b9fa-46fd-873f-c54ef5956c73",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +116,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Digest trigger",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Digest trigger": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Collect sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Collect sections": {
+      "main": [
+        [
+          {
+            "node": "Render HTML stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render HTML stub": {
+      "main": [
+        [
+          {
+            "node": "Send digest stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send digest stub": {
+      "main": [
+        [
+          {
+            "node": "Finish digest-daily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish digest-daily": {
       "main": [
         [
           {

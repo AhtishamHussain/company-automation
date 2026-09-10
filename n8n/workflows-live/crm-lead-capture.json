@@ -8,42 +8,77 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "15be9a20-4448-4260-bda6-39fbf99f9e32",
+      "id": "03f0a7e8-ccec-49fb-b143-f91a635e2a7a",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "127d788c-dbbb-4ad8-b3eb-4af6f9617ca4"
+      "webhookId": "a73e227f-75eb-4101-8d11-5717ee6345e0"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "d0b77c75-e47f-4768-85ef-1078b28ba8ca",
+      "name": "Read website form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1abdfa2f-fbea-403c-ab4e-c16401600cab",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c99d108e-90c1-464d-9350-4fcd5b2fe38c",
+      "name": "Email present?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "0f8f3506-1133-47e5-a988-5dfef7195c7c",
-              "name": "masterWorkflowId",
-              "value": "crm-lead-capture",
+              "id": "03b0cfe1-acd5-4a32-8c37-29701a710c6e",
+              "name": "crmAction",
+              "value": "create_lead",
               "type": "string"
             },
             {
-              "id": "c4cd7e9c-3098-44e6-b6b7-1388a47cdf93",
-              "name": "engineWorkflowRef",
-              "value": "live-crm-lead-capture",
-              "type": "string"
-            },
-            {
-              "id": "477ea0c3-1b86-4e96-b2ef-893210fd2677",
-              "name": "category",
-              "value": "crm",
-              "type": "string"
-            },
-            {
-              "id": "a00b3d75-5175-435b-bdbf-938aa69f4f0f",
-              "name": "action",
-              "value": "lead-capture",
+              "id": "868ed5b0-ec2d-49cd-bebe-f7c524a58042",
+              "name": "stage",
+              "value": "new",
               "type": "string"
             }
           ]
@@ -52,26 +87,64 @@
           "includeOtherFields": true
         }
       },
-      "id": "7012cc03-930b-442e-a07e-63c141899ec4",
-      "name": "Master metadata",
+      "id": "156be0d7-9400-4bf9-bc18-81a65b3e5aa5",
+      "name": "Create CRM lead",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        780,
+        80
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-lead-capture',\n    category: 'crm',\n    action: 'lead-capture',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/lead-capture completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "24f95d15-f992-4ab3-992a-51d8a6398471",
+              "name": "crmAction",
+              "value": "manual_review",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "a0b12e28-0378-4cd4-82f8-1adcf83c0bc1",
-      "name": "Process + stub integration",
+      "id": "e11dc116-22b7-41a3-ac5b-274ec7c8834b",
+      "name": "Queue for sales assist",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "57390b09-9180-4099-8b32-08583b66903f",
+      "name": "Join paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'crm-lead-capture',\n  engineWorkflowRef: 'live-crm-lead-capture',\n  category: 'crm',\n  action: 'lead-capture',\n  message: 'Master crm/lead-capture completed on n8n',\n  detail: j,\n  integration: { provider: 'crm-flow', status: 'accepted', note: \"Website form → create or review lead\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "9f5356de-0460-4a46-85fb-a839c55576be",
+      "name": "Finish lead-capture",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1280,
+        240
       ]
     },
     {
@@ -80,13 +153,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "d2d79dee-52d7-4168-bcb6-71fdec7bdf02",
+      "id": "13dcbc05-2f86-4b6a-9819-b8eb39c9172b",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1400,
+        240
       ]
     }
   ],
@@ -95,25 +168,76 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Read website form",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Read website form": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Email present?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Email present?": {
+      "main": [
+        [
+          {
+            "node": "Create CRM lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue for sales assist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create CRM lead": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue for sales assist": {
+      "main": [
+        [
+          {
+            "node": "Join paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Join paths": {
+      "main": [
+        [
+          {
+            "node": "Finish lead-capture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish lead-capture": {
       "main": [
         [
           {

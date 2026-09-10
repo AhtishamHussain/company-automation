@@ -8,42 +8,50 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "d0d1654f-3d42-479f-bef5-0a2ef4d834f7",
+      "id": "8a3680ed-f161-4ac5-a90d-fa02ca4a2db9",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "edd3c197-f9f6-4037-8dc5-47fd276ce15e"
+      "webhookId": "90323849-3fd5-454f-a6cc-43ddf3ebdc7b"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "adec0701-57f7-49c3-9ef7-241d255d4421",
+      "name": "Broadcast job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$input.first().json||{}; return [{json:{...j, audience:80, skipped:5}}];"
+      },
+      "id": "77e909d0-dfff-4211-92c6-4cffd1ca91bf",
+      "name": "Filter opted-in",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        500
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "2df4ac32-47af-4ed1-a8a4-ca6681b7a37f",
-              "name": "masterWorkflowId",
-              "value": "whatsapp-broadcast-optin",
-              "type": "string"
-            },
-            {
-              "id": "aef77e2b-048f-47d8-8ac7-b8a4183742b1",
-              "name": "engineWorkflowRef",
-              "value": "live-whatsapp-broadcast-optin",
-              "type": "string"
-            },
-            {
-              "id": "18a5393f-338d-414b-bbc8-17e3cb62cbd9",
-              "name": "category",
-              "value": "whatsapp",
-              "type": "string"
-            },
-            {
-              "id": "4bc8049c-0fd9-4195-8a5a-60b1a9ff6291",
-              "name": "action",
-              "value": "broadcast-optin",
+              "id": "25800fc5-5084-4f97-8b80-c60f9cf46db7",
+              "name": "template",
+              "value": "broadcast_optin",
               "type": "string"
             }
           ]
@@ -52,26 +60,51 @@
           "includeOtherFields": true
         }
       },
-      "id": "1335550c-78a2-4305-988c-5abc5496e7b5",
-      "name": "Master metadata",
+      "id": "4889db36-acd4-4bff-be00-2ac0c0d98d23",
+      "name": "Pick campaign template",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        820,
+        420
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-broadcast-optin',\n    category: 'whatsapp',\n    action: 'broadcast-optin',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/broadcast-optin completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "848447ca-ab7e-4a51-8c89-87f894c64a19",
+              "name": "policy",
+              "value": "opt-in-only",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "d41d52a0-02ff-4950-b8ba-746b761d24fa",
-      "name": "Process + stub integration",
+      "id": "8611b77e-e371-47f6-92aa-b5a63bd3bfc3",
+      "name": "Send compliant blast stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'whatsapp-broadcast-optin',\n  engineWorkflowRef: 'live-whatsapp-broadcast-optin',\n  category: 'whatsapp',\n  action: 'broadcast-optin',\n  message: 'Master whatsapp/broadcast-optin completed on n8n',\n  detail: j,\n  integration: { provider: 'whatsapp-flow', status: 'accepted', note: \"Compliant broadcast to opted-in lists\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "5018d04b-6625-4371-9be9-6fe6b9c0dccb",
+      "name": "Finish broadcast-optin",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +113,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "204355c2-e051-4dfa-83d6-9367b2cb1c6a",
+      "id": "f1cefbea-d926-4be3-946c-d533fd5bba6a",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +128,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Broadcast job",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Broadcast job": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Filter opted-in",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Filter opted-in": {
+      "main": [
+        [
+          {
+            "node": "Pick campaign template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick campaign template": {
+      "main": [
+        [
+          {
+            "node": "Send compliant blast stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send compliant blast stub": {
+      "main": [
+        [
+          {
+            "node": "Finish broadcast-optin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish broadcast-optin": {
       "main": [
         [
           {

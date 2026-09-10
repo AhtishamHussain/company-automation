@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "66d2a3d9-268d-4cde-9528-443ac54267d6",
+      "id": "103a0657-20cb-42a2-abe4-9a31ba0ce274",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "b58eefe4-62f9-4452-8bf9-4c4222b63bda"
+      "webhookId": "1e94fa38-31c3-4169-9282-67048b189bb2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "d8900f1e-25e1-443f-9e69-0af648a76b71",
+      "name": "Ticket closed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        260
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "eb677b79-2cad-4281-a165-c63a39f52263",
-              "name": "masterWorkflowId",
-              "value": "whatsapp-feedback-request",
-              "type": "string"
-            },
-            {
-              "id": "21026d89-f0b0-4be4-9140-d1662a3722b0",
-              "name": "engineWorkflowRef",
-              "value": "live-whatsapp-feedback-request",
-              "type": "string"
-            },
-            {
-              "id": "61590bcd-8ee2-471f-86c3-c29530a8e17d",
-              "name": "category",
-              "value": "whatsapp",
-              "type": "string"
-            },
-            {
-              "id": "4812b86d-7b7f-42bb-9ad5-4b7d2a31e45f",
-              "name": "action",
-              "value": "feedback-request",
+              "id": "9b10fccf-c5d2-4775-b6f7-0bcce801deea",
+              "name": "minutes",
+              "value": "30",
               "type": "string"
             }
           ]
@@ -52,26 +47,76 @@
           "includeOtherFields": true
         }
       },
-      "id": "c154fbd1-a37e-4b0f-b184-b8072ef505ea",
-      "name": "Master metadata",
+      "id": "858feacc-0434-4de4-abbe-70edf358812b",
+      "name": "Wait window stub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        540,
+        260
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-feedback-request',\n    category: 'whatsapp',\n    action: 'feedback-request',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/feedback-request completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7b5d20d2-1726-49bb-83b7-c23751003e54",
+              "name": "template",
+              "value": "csat_1to5",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "f4c72434-518b-4c35-838d-d76b61dfc411",
-      "name": "Process + stub integration",
+      "id": "e1b89f23-99bf-4a60-b303-8c4bae0d5b03",
+      "name": "CSAT template",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        820,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c0b65479-5bca-4c1a-bde4-73692698dbb2",
+              "name": "to",
+              "value": "={{ $json.to }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "b20b12f1-3fe2-4057-8675-ebc6fca85d23",
+      "name": "Ask on WhatsApp stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'whatsapp-feedback-request',\n  engineWorkflowRef: 'live-whatsapp-feedback-request',\n  category: 'whatsapp',\n  action: 'feedback-request',\n  message: 'Master whatsapp/feedback-request completed on n8n',\n  detail: j,\n  integration: { provider: 'whatsapp-flow', status: 'accepted', note: \"Ask for CSAT after resolution\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "c1c9c84a-8b99-452c-acb9-2f8c61eda051",
+      "name": "Finish feedback-request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +125,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "73065cc1-cbe3-4b6e-bb89-731a2f85cbc5",
+      "id": "98fa3e66-75ef-440e-9443-ae73ca93d7e7",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +140,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Ticket closed",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Ticket closed": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Wait window stub",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Wait window stub": {
+      "main": [
+        [
+          {
+            "node": "CSAT template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CSAT template": {
+      "main": [
+        [
+          {
+            "node": "Ask on WhatsApp stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask on WhatsApp stub": {
+      "main": [
+        [
+          {
+            "node": "Finish feedback-request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish feedback-request": {
       "main": [
         [
           {

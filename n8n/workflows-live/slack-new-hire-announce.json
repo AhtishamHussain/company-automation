@@ -8,42 +8,37 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "37cafc2d-2f41-4951-b82c-c21b68257c10",
+      "id": "b8f9a409-e6d5-40ff-8a18-6f71b2457bb7",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         0,
-        0
+        240
       ],
-      "webhookId": "17419716-c7af-465a-a9ea-f585883a0abe"
+      "webhookId": "cd3a33fc-7e1d-4e00-afca-44a027c3982f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body } : raw;\nreturn [{ json: { ...raw, ...body } }];"
+      },
+      "id": "95c4b8a8-1b33-4277-ae34-b9adfbfcc214",
+      "name": "Hire record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        60
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "942d1a77-6f70-4720-bc96-19b143bb1244",
-              "name": "masterWorkflowId",
-              "value": "slack-new-hire-announce",
-              "type": "string"
-            },
-            {
-              "id": "22ac1e94-ccd1-42a8-a16f-28a0a355491d",
-              "name": "engineWorkflowRef",
-              "value": "live-slack-new-hire-announce",
-              "type": "string"
-            },
-            {
-              "id": "681752cb-559c-43de-ae7b-42801fa0c644",
-              "name": "category",
-              "value": "slack",
-              "type": "string"
-            },
-            {
-              "id": "394bda0b-a34e-43e7-b5ce-db7de21598ef",
-              "name": "action",
-              "value": "new-hire-announce",
+              "id": "a1996e3a-3c30-4488-8d97-6c384403942e",
+              "name": "text",
+              "value": "Please welcome our new teammate",
               "type": "string"
             }
           ]
@@ -52,26 +47,76 @@
           "includeOtherFields": true
         }
       },
-      "id": "f7e5c28e-f991-4d53-979e-aa334e0a958b",
-      "name": "Master metadata",
+      "id": "954aa3b5-746b-404e-b89c-e6cf678d217b",
+      "name": "Compose welcome",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        260,
-        0
+        540,
+        60
       ]
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-new-hire-announce',\n    category: 'slack',\n    action: 'new-hire-announce',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/new-hire-announce completed on n8n',\n  }\n}];"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "78a80b5f-2d92-4a5e-91c7-3c1a995698bd",
+              "name": "channel",
+              "value": "#general",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
       },
-      "id": "7855e120-6eb2-4e80-aec0-d675b3425ca2",
-      "name": "Process + stub integration",
+      "id": "128650d0-d8a1-43ce-88ea-eed089c69d99",
+      "name": "Post #general stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        820,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "be459951-b4bd-4961-8731-ff5687c3046d",
+              "name": "groups",
+              "value": "eng,people",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "bbce781e-997e-441f-be11-51e063a3c104",
+      "name": "Invite to teams",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  engine: 'n8n',\n  masterWorkflowId: 'slack-new-hire-announce',\n  engineWorkflowRef: 'live-slack-new-hire-announce',\n  category: 'slack',\n  action: 'new-hire-announce',\n  message: 'Master slack/new-hire-announce completed on n8n',\n  detail: j,\n  integration: { provider: 'slack-flow', status: 'accepted', note: \"Welcome message on start date\", at: new Date().toISOString() }\n}}];"
+      },
+      "id": "f230b721-691b-41dc-83ae-b2b6f97ebdda",
+      "name": "Finish new-hire-announce",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        540,
-        0
+        1300,
+        240
       ]
     },
     {
@@ -80,13 +125,13 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "28c62f60-85d0-4603-8954-4a5a4b876cc8",
+      "id": "1d872969-e57b-4a0f-8b47-fde8929a7413",
       "name": "Respond to Master",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        820,
-        0
+        1560,
+        240
       ]
     }
   ],
@@ -95,25 +140,58 @@
       "main": [
         [
           {
-            "node": "Master metadata",
+            "node": "Hire record",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Master metadata": {
+    "Hire record": {
       "main": [
         [
           {
-            "node": "Process + stub integration",
+            "node": "Compose welcome",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process + stub integration": {
+    "Compose welcome": {
+      "main": [
+        [
+          {
+            "node": "Post #general stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post #general stub": {
+      "main": [
+        [
+          {
+            "node": "Invite to teams",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invite to teams": {
+      "main": [
+        [
+          {
+            "node": "Finish new-hire-announce",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finish new-hire-announce": {
       "main": [
         [
           {
