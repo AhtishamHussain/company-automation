@@ -1,0 +1,280 @@
+{
+  "name": "Master | CRM | Lead capture",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-crm-lead-capture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b69b420a-e6ab-40fc-8dc3-644c9dcc8ce6",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "a9691e5b-fd58-4727-9faa-931ec7dac7d9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "482fc35c-1048-472d-ac2a-20fbef15db5e",
+              "name": "masterWorkflowId",
+              "value": "crm-lead-capture",
+              "type": "string"
+            },
+            {
+              "id": "cac863f3-d3b0-4556-9b16-ee0a03e04de4",
+              "name": "engineWorkflowRef",
+              "value": "master-crm-lead-capture",
+              "type": "string"
+            },
+            {
+              "id": "0c28e9a7-34e1-49c2-a79f-f8d7b259e85b",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "f783e859-432e-4f6d-9385-eb47a12b3bfd",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0bdb7c87-c2ba-4a8a-a343-344a20d91fc2",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'crm-lead-capture',\n  category: 'crm',\n  intent: \"Create CRM lead from inbound form payload\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst lead = {\n  name: body.name || body.fullName || 'Unknown lead',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n  stage: body.stage || ( 'lead-capture' === 'won-deal-handoff' ? 'won' : 'new' ),\n};\nconst valid = Boolean(lead.email || lead.company || body.dealId || body.source === 'master-app' || body.source === 'master-test');\nreturn [{ json: { ...meta, valid, lead, action: 'lead-capture', next: valid ? 'sync_crm' : 'reject' } }];"
+      },
+      "id": "b8d50910-e3e2-4ef5-b29c-f0d5d2b4c0ed",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "7e3ab208-cdb7-4b6c-b147-6904d7884c85",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5794e2de-9c28-4e20-b750-c6436919f0bb",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real crm integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "88cc9ba3-6038-4ab6-ac7d-b842ff3d96ef",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real CRM API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e35aa0d7-c122-4c3d-8638-2017a4146954",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b6a6a4f4-4957-47f8-9a08-671168f2bc9a",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "6e4b44f0-3d29-4c75-954a-c4125d81039b",
+              "name": "masterWorkflowId",
+              "value": "crm-lead-capture",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "88e8d152-cd6f-4e1a-9102-0f5ac09c274d",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'crm-lead-capture',\n    category: 'crm',\n    action: 'lead-capture',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master crm/lead-capture completed',\n  }\n}];"
+      },
+      "id": "6d0c7722-5197-4b01-b99c-cc96270a2e04",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "0ca6793e-a4d6-46d9-b326-0c843f7570b2",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "crm-lead-capture",
+    "engineWorkflowRef": "master-crm-lead-capture"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "name": "Live | EMAIL | Bounce handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-email-bounce-handler",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c254e63f-b7b7-4fd5-9e03-89154da5c6fc",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "5bae0063-9b26-4ebb-a7d6-35218e0c68cd"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3a652162-d225-4086-8449-71122c916d8a",
+              "name": "masterWorkflowId",
+              "value": "email-bounce-handler",
+              "type": "string"
+            },
+            {
+              "id": "629ff8a2-1df9-4f89-b8c7-83729c0a5a30",
+              "name": "engineWorkflowRef",
+              "value": "live-email-bounce-handler",
+              "type": "string"
+            },
+            {
+              "id": "1234a580-c4b5-4ec6-91ff-d274fbc08430",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "ac89b742-dac6-4257-952b-e713782db1a6",
+              "name": "action",
+              "value": "bounce-handler",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "b3c4ac5f-6831-421d-8e73-06b0245a9887",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-bounce-handler',\n    category: 'email',\n    action: 'bounce-handler',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/bounce-handler completed on n8n',\n  }\n}];"
+      },
+      "id": "834f47d8-8951-4c40-9db6-dc0f1661b60c",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "2702d7e1-d3af-43cb-8eda-8280c3726169",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,160 @@
+id: master
+namespace: company.crm
+description: |
+  Master template for company.crm (workflows 41–50).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "5"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - lead_scoring_engine
+      - stale_lead_restarter
+      - win_loss_alert_bot
+      - contact_enrichment_pipeline
+      - lost_deal_surveyor
+      - drip_campaign_enroller
+      - duplicate_account_merger
+      - vip_client_flag
+      - sales_rep_round_robin
+      - weekly_activity_reporting_bot
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      lead_scoring_engine:
+        - id: log_lead_scoring_engine
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 41. Lead Scoring Engine
+            Goal: Switch score on lead attributes
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_lead_scoring_engine
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK lead_scoring_engine — replace this stub with jdbc/openai/http/pdf plugins"
+      stale_lead_restarter:
+        - id: log_stale_lead_restarter
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 42. Stale Lead Restarter
+            Goal: Daily stale lead nudge
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_stale_lead_restarter
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK stale_lead_restarter — replace this stub with jdbc/openai/http/pdf plugins"
+      win_loss_alert_bot:
+        - id: log_win_loss_alert_bot
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 43. Win-Loss Alert Bot
+            Goal: Slack win/loss alert
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_win_loss_alert_bot
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK win_loss_alert_bot — replace this stub with jdbc/openai/http/pdf plugins"
+      contact_enrichment_pipeline:
+        - id: log_contact_enrichment_pipeline
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 44. Contact Enrichment Pipeline
+            Goal: Clearbit/ZoomInfo enrich
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_contact_enrichment_pipeline
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK contact_enrichment_pipeline — replace this stub with jdbc/openai/http/pdf plugins"
+      lost_deal_surveyor:
+        - id: log_lost_deal_surveyor
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 45. Lost Deal Surveyor
+            Goal: Deploy lost-deal survey
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_lost_deal_surveyor
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK lost_deal_surveyor — replace this stub with jdbc/openai/http/pdf plugins"
+      drip_campaign_enroller:
+        - id: log_drip_campaign_enroller
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 46. Drip Campaign Enroller
+            Goal: HubSpot/Marketo enroll
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_drip_campaign_enroller
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK drip_campaign_enroller — replace this stub with jdbc/openai/http/pdf plugins"
+      duplicate_account_merger:
+        - id: log_duplicate_account_merger
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 47. Duplicate Account Merger
+            Goal: Weekly CRM merge
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_duplicate_account_merger
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK duplicate_account_merger — replace this stub with jdbc/openai/http/pdf plugins"
+      vip_client_flag:
+        - id: log_vip_client_flag
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 48. VIP Client Flag
+            Goal: If deal size → VIP alert
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_vip_client_flag
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK vip_client_flag — replace this stub with jdbc/openai/http/pdf plugins"
+      sales_rep_round_robin:
+        - id: log_sales_rep_round_robin
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 49. Sales Rep Round-Robin
+            Goal: Assign lead to next rep
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_sales_rep_round_robin
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK sales_rep_round_robin — replace this stub with jdbc/openai/http/pdf plugins"
+      weekly_activity_reporting_bot:
+        - id: log_weekly_activity_reporting_bot
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 50. Weekly Activity Reporting Bot
+            Goal: Friday activity summary
+            Namespace: company.crm
+            Payload: {{ inputs.payload }}
+        - id: done_weekly_activity_reporting_bot
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK weekly_activity_reporting_bot — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

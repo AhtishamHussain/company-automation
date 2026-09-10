@@ -1,0 +1,280 @@
+{
+  "name": "Master | SLACK | Standup prompt",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-slack-standup-prompt",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1e517ede-d47f-40fe-9788-2211bea9ef79",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d60536a5-6d4e-41ad-a92f-8d072d2bac5d"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fef08946-d07d-40aa-b76e-be5ed37d0dc2",
+              "name": "masterWorkflowId",
+              "value": "slack-standup-prompt",
+              "type": "string"
+            },
+            {
+              "id": "d057d541-482c-4303-854c-38b29f73a88b",
+              "name": "engineWorkflowRef",
+              "value": "master-slack-standup-prompt",
+              "type": "string"
+            },
+            {
+              "id": "9ae98f44-aac6-487a-a2c1-f3068e24d24f",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "9011fba1-8b3f-4cf9-9531-c4049f7ba8ac",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0983c529-03ea-4c61-8ef3-1c5979054427",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'slack-standup-prompt',\n  category: 'slack',\n  intent: \"Prepare standup reminder\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst slack = {\n  channel: body.channel || '#ops',\n  text: body.text || body.message || '[Master] Prepare standup reminder',\n  severity: body.severity || ('standup-prompt' === 'incident-alert' ? 'critical' : 'info'),\n};\nreturn [{ json: { ...meta, valid: true, slack, action: 'standup-prompt', next: 'post_slack' } }];"
+      },
+      "id": "4dffb5c1-089c-4e0b-9d79-0e4d65412e59",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "8bfcd04d-94ff-4b60-86bf-79f010c63631",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f1ee64f3-f9fa-49ce-9401-93514f2e07cd",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real slack integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "e8033bec-9ef9-473d-b859-29962a7dadda",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real SLACK API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0c918fc1-0f45-45a6-a705-5d0e16bb3b93",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "01261a1c-f8a1-45a4-b134-6c1baf84646d",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "71b2e9ba-4c60-4d53-a16f-00d39345034c",
+              "name": "masterWorkflowId",
+              "value": "slack-standup-prompt",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "52009931-cee4-487e-aa28-01ccb6abb962",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'slack-standup-prompt',\n    category: 'slack',\n    action: 'standup-prompt',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master slack/standup-prompt completed',\n  }\n}];"
+      },
+      "id": "18de2a3a-02b4-4d36-97a7-1eb5488d96f3",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "b6f28188-fb73-4ffc-8a34-9f6c333aee7a",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "slack-standup-prompt",
+    "engineWorkflowRef": "master-slack-standup-prompt"
+  }
+}

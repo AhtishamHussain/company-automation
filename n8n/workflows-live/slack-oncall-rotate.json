@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | On-call rotate",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-oncall-rotate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b2a19a98-9c02-43f3-8a48-82092a3ec9b4",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "13e6f3d8-9a78-4e39-8c92-c5f10410ee83"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bcd6a9a3-c065-47aa-a12d-42666a417d3d",
+              "name": "masterWorkflowId",
+              "value": "slack-oncall-rotate",
+              "type": "string"
+            },
+            {
+              "id": "23a64eb8-886e-47fc-b89a-577cba14e52b",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-oncall-rotate",
+              "type": "string"
+            },
+            {
+              "id": "d28efa38-8a0b-49bf-ab75-17f50bae952e",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "ba5ccd1c-f670-4753-a9ee-ca082b05cbe2",
+              "name": "action",
+              "value": "oncall-rotate",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "0d6a49c9-ba6e-4c7a-abfc-14876461392a",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-oncall-rotate',\n    category: 'slack',\n    action: 'oncall-rotate',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/oncall-rotate completed on n8n',\n  }\n}];"
+      },
+      "id": "9e631631-b6ee-4357-99e0-aefe0d6b6e14",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "1410dc61-a695-4834-9e06-d8a6159891e4",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

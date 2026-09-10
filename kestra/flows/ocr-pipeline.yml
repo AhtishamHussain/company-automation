@@ -1,0 +1,10 @@
+id: ocr-pipeline
+namespace: master.document-parsing
+description: Master · OCR pipeline (stub)
+tasks:
+  - id: log_start
+    type: io.kestra.plugin.core.log.Log
+    message: "Master OCR pipeline started"
+  - id: stub_work
+    type: io.kestra.plugin.core.debug.Return
+    format: "OCR stub — connect Stirling-PDF or Tesseract next"

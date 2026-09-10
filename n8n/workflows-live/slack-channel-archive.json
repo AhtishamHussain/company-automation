@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | Stale channel archive",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-channel-archive",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "46059e1e-2a0b-4d52-a2b4-af2aa6ac2704",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "00f60bc6-dc05-42f8-9c7b-7eb9d927cc64"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3b1bb23-5388-4b7c-a344-f447bd246705",
+              "name": "masterWorkflowId",
+              "value": "slack-channel-archive",
+              "type": "string"
+            },
+            {
+              "id": "9ce19730-521a-4662-903e-eafd77d97bb5",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-channel-archive",
+              "type": "string"
+            },
+            {
+              "id": "331e40f7-ee30-42a9-9a86-6742f2e3e761",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "c806c5e8-0222-442e-8303-878c072f8303",
+              "name": "action",
+              "value": "channel-archive",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "074d1ec4-53a7-4632-8f79-1e7a28c12cdf",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-channel-archive',\n    category: 'slack',\n    action: 'channel-archive',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/channel-archive completed on n8n',\n  }\n}];"
+      },
+      "id": "d01c1e9c-a3cc-49c3-905a-fdcec3bf2451",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "0aa10204-574f-4ab4-89cd-9e77bf4f1eb9",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

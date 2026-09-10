@@ -1,0 +1,131 @@
+{
+  "name": "Live | WHATSAPP | Order status",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-whatsapp-order-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "eacd65ad-1394-4dcb-98d7-ee829a436087",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "4ae5f813-4adb-4621-b2ac-a0efd325509f"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4034f6a4-1e9a-47fa-9cf6-37d9cda1da83",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-order-status",
+              "type": "string"
+            },
+            {
+              "id": "23346912-562a-4b2d-96cf-500b950d60ca",
+              "name": "engineWorkflowRef",
+              "value": "live-whatsapp-order-status",
+              "type": "string"
+            },
+            {
+              "id": "1b68cd96-dd9c-409c-8363-5417fd7066c3",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "bbc0f75a-99c5-478a-bb3f-680f05c39560",
+              "name": "action",
+              "value": "order-status",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "ca008701-7d45-4cff-a8b6-06f6f991fa02",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-order-status',\n    category: 'whatsapp',\n    action: 'order-status',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/order-status completed on n8n',\n  }\n}];"
+      },
+      "id": "9a18fcd5-46d4-446f-a593-efa0bd4317ad",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "06cfe0d3-443a-4f14-b127-28bf53fbfbef",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "name": "Master | SLACK | Stale channel archive",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-slack-channel-archive",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4cee85ae-3ee8-4780-b00d-8909dfeacf89",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "8c89f0ed-92c6-46cc-a5c8-85b80df15f77"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c2ab4a34-d2bf-4a04-a42a-21c82c123cdb",
+              "name": "masterWorkflowId",
+              "value": "slack-channel-archive",
+              "type": "string"
+            },
+            {
+              "id": "6a2fb5ce-189a-417a-9e79-d1665bbba607",
+              "name": "engineWorkflowRef",
+              "value": "master-slack-channel-archive",
+              "type": "string"
+            },
+            {
+              "id": "512befe3-fc30-412c-945b-ab722a2e706c",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "f8efaefb-01fd-4e03-9027-52ff362adc52",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3b6c9455-8cb8-435b-8b24-6e3e7e43a46e",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'slack-channel-archive',\n  category: 'slack',\n  intent: \"Mark inactive channel\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst slack = {\n  channel: body.channel || '#ops',\n  text: body.text || body.message || '[Master] Mark inactive channel',\n  severity: body.severity || ('channel-archive' === 'incident-alert' ? 'critical' : 'info'),\n};\nreturn [{ json: { ...meta, valid: true, slack, action: 'channel-archive', next: 'post_slack' } }];"
+      },
+      "id": "f3c12195-f5a0-4bd7-bced-981592820764",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "37378b21-ad6f-4659-a03c-1b8a9b2a8d37",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c99b6202-8c65-49e4-979e-668c50904098",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real slack integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "2fba88e5-0ee0-45b5-862b-ffcd66368f12",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real SLACK API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3cf98625-3848-4704-8d76-dddcc37d8b50",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "8128a71e-055e-4840-8d4f-47d843dd01cb",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "6be1bd2b-50ef-4272-8642-bcb972425452",
+              "name": "masterWorkflowId",
+              "value": "slack-channel-archive",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d465e96a-643f-428c-b99c-78ac95f66e31",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'slack-channel-archive',\n    category: 'slack',\n    action: 'channel-archive',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master slack/channel-archive completed',\n  }\n}];"
+      },
+      "id": "f2bb2f11-5e50-48bf-9917-1f066ff88ffa",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "9c06360b-9861-43c6-839d-f3f643433aa4",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "slack-channel-archive",
+    "engineWorkflowRef": "master-slack-channel-archive"
+  }
+}

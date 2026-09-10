@@ -1,0 +1,160 @@
+id: master
+namespace: company.hr
+description: |
+  Master template for company.hr (workflows 11–20).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "2"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - new_hire_onboarding
+      - offboarding_deprovisioning
+      - anniversary_birthday_bot
+      - time_off_request_router
+      - performance_review_scheduler
+      - policy_update_tracker
+      - referral_reward_tracker
+      - training_compliance_monitor
+      - equipment_provisioning
+      - org_chart_updater
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      new_hire_onboarding:
+        - id: log_new_hire_onboarding
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 11. New Hire Onboarding Pipeline
+            Goal: Parallel provision Google/Slack/Jira
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_new_hire_onboarding
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK new_hire_onboarding — replace this stub with jdbc/openai/http/pdf plugins"
+      offboarding_deprovisioning:
+        - id: log_offboarding_deprovisioning
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 12. Offboarding Deprovisioning
+            Goal: Parallel revoke tokens and access
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_offboarding_deprovisioning
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK offboarding_deprovisioning — replace this stub with jdbc/openai/http/pdf plugins"
+      anniversary_birthday_bot:
+        - id: log_anniversary_birthday_bot
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 13. Anniversary/Birthday Bot
+            Goal: Query DB and Slack celebrate
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_anniversary_birthday_bot
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK anniversary_birthday_bot — replace this stub with jdbc/openai/http/pdf plugins"
+      time_off_request_router:
+        - id: log_time_off_request_router
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 14. Time-Off Request Router
+            Goal: If-route leave and update calendar
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_time_off_request_router
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK time_off_request_router — replace this stub with jdbc/openai/http/pdf plugins"
+      performance_review_scheduler:
+        - id: log_performance_review_scheduler
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 15. Performance Review Scheduler
+            Goal: Quarterly review email links
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_performance_review_scheduler
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK performance_review_scheduler — replace this stub with jdbc/openai/http/pdf plugins"
+      policy_update_tracker:
+        - id: log_policy_update_tracker
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 16. Policy Update Tracker
+            Goal: Email blast + track acknowledgments
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_policy_update_tracker
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK policy_update_tracker — replace this stub with jdbc/openai/http/pdf plugins"
+      referral_reward_tracker:
+        - id: log_referral_reward_tracker
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 17. Referral Reward Tracker
+            Goal: Payroll API referral reward
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_referral_reward_tracker
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK referral_reward_tracker — replace this stub with jdbc/openai/http/pdf plugins"
+      training_compliance_monitor:
+        - id: log_training_compliance_monitor
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 18. Training Compliance Monitor
+            Goal: EachSequential overdue trainings
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_training_compliance_monitor
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK training_compliance_monitor — replace this stub with jdbc/openai/http/pdf plugins"
+      equipment_provisioning:
+        - id: log_equipment_provisioning
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 19. Equipment Provisioning
+            Goal: Jira Service Desk ticket
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_equipment_provisioning
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK equipment_provisioning — replace this stub with jdbc/openai/http/pdf plugins"
+      org_chart_updater:
+        - id: log_org_chart_updater
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 20. Org Chart Updater
+            Goal: Refresh org chart UI from DB
+            Namespace: company.hr
+            Payload: {{ inputs.payload }}
+        - id: done_org_chart_updater
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK org_chart_updater — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

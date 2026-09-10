@@ -1,0 +1,160 @@
+id: master
+namespace: company.slack
+description: |
+  Master template for company.slack (workflows 61–70).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "7"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - incident_alert
+      - approval_buttons
+      - standup_prompt
+      - new_hire_announce
+      - deal_won_celebrate
+      - oncall_rotate
+      - feedback_poll
+      - channel_archive
+      - release_notes_poster
+      - security_alert_router
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      incident_alert:
+        - id: log_incident_alert
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 61. Incident Alert
+            Goal: Incident Alert
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_incident_alert
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK incident_alert — replace this stub with jdbc/openai/http/pdf plugins"
+      approval_buttons:
+        - id: log_approval_buttons
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 62. Approval Buttons
+            Goal: Approval Buttons
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_approval_buttons
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK approval_buttons — replace this stub with jdbc/openai/http/pdf plugins"
+      standup_prompt:
+        - id: log_standup_prompt
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 63. Standup Prompt
+            Goal: Standup Prompt
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_standup_prompt
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK standup_prompt — replace this stub with jdbc/openai/http/pdf plugins"
+      new_hire_announce:
+        - id: log_new_hire_announce
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 64. New Hire Announce
+            Goal: New Hire Announce
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_new_hire_announce
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK new_hire_announce — replace this stub with jdbc/openai/http/pdf plugins"
+      deal_won_celebrate:
+        - id: log_deal_won_celebrate
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 65. Deal Won Celebrate
+            Goal: Deal Won Celebrate
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_deal_won_celebrate
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK deal_won_celebrate — replace this stub with jdbc/openai/http/pdf plugins"
+      oncall_rotate:
+        - id: log_oncall_rotate
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 66. On-call Rotate
+            Goal: On-call Rotate
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_oncall_rotate
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK oncall_rotate — replace this stub with jdbc/openai/http/pdf plugins"
+      feedback_poll:
+        - id: log_feedback_poll
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 67. Feedback Poll
+            Goal: Feedback Poll
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_feedback_poll
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK feedback_poll — replace this stub with jdbc/openai/http/pdf plugins"
+      channel_archive:
+        - id: log_channel_archive
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 68. Stale Channel Archive
+            Goal: Stale Channel Archive
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_channel_archive
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK channel_archive — replace this stub with jdbc/openai/http/pdf plugins"
+      release_notes_poster:
+        - id: log_release_notes_poster
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 69. Release Notes Poster
+            Goal: Release Notes Poster
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_release_notes_poster
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK release_notes_poster — replace this stub with jdbc/openai/http/pdf plugins"
+      security_alert_router:
+        - id: log_security_alert_router
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 70. Security Alert Router
+            Goal: Security Alert Router
+            Namespace: company.slack
+            Payload: {{ inputs.payload }}
+        - id: done_security_alert_router
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK security_alert_router — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

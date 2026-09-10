@@ -1,0 +1,131 @@
+{
+  "name": "Live | CRM | Lost reason log",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-crm-lost-reason-log",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "be96aeb9-cbc1-4a2d-90e1-5407acb4ff4a",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "b364ace7-4ae4-48c7-9622-ae70c536fa5a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0f79947-11fb-4cad-8fff-883d075c44c5",
+              "name": "masterWorkflowId",
+              "value": "crm-lost-reason-log",
+              "type": "string"
+            },
+            {
+              "id": "6a27e81e-7f49-472b-a6f2-3a6f72f511eb",
+              "name": "engineWorkflowRef",
+              "value": "live-crm-lost-reason-log",
+              "type": "string"
+            },
+            {
+              "id": "af3ea86c-99dc-4a5d-98d0-aa7625efca4d",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "defe98ab-ea4e-4351-812d-0f54f7a46a33",
+              "name": "action",
+              "value": "lost-reason-log",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "dd45aa9d-2234-4721-845e-c0c831c9cfdc",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-lost-reason-log',\n    category: 'crm',\n    action: 'lost-reason-log',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/lost-reason-log completed on n8n',\n  }\n}];"
+      },
+      "id": "0f2a78cb-ca2c-47fd-a63b-67ee704b59e2",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "ea8480f2-bd6e-48fb-8d00-082a91a0d104",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

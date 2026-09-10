@@ -1,0 +1,131 @@
+{
+  "name": "Live | EMAIL | Inbox triage",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-email-inbox-triage",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4613dccd-4ac1-40dc-ad7c-0ad2b0bac3c4",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "352fff1a-a549-42fc-86d5-85facab1a22c"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad8ced85-ad92-4730-ab02-8aa29c419b22",
+              "name": "masterWorkflowId",
+              "value": "email-inbox-triage",
+              "type": "string"
+            },
+            {
+              "id": "b3fc5b2f-a0b6-473b-8503-9bc73a49b1d7",
+              "name": "engineWorkflowRef",
+              "value": "live-email-inbox-triage",
+              "type": "string"
+            },
+            {
+              "id": "274717bc-8770-4a61-ac1a-484953691d5e",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "945b8f53-19e5-4a40-907a-e3ef96dbf986",
+              "name": "action",
+              "value": "inbox-triage",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "66d72048-5dbe-4c2d-8717-549a4db4d13c",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-inbox-triage',\n    category: 'email',\n    action: 'inbox-triage',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/inbox-triage completed on n8n',\n  }\n}];"
+      },
+      "id": "98869728-899c-4304-b026-f3d6bb1f0a7f",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "da0f92a3-470f-4974-a9d9-211e8e60bd4e",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

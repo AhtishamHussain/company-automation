@@ -1,0 +1,10 @@
+id: docs-ingest
+namespace: master.knowledge-base
+description: Master · Knowledge base docs ingest (stub)
+tasks:
+  - id: log_start
+    type: io.kestra.plugin.core.log.Log
+    message: "Master KB ingest started"
+  - id: stub_work
+    type: io.kestra.plugin.core.debug.Return
+    format: "KB ingest stub"

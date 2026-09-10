@@ -1,0 +1,280 @@
+{
+  "name": "Master | EMAIL | Cold outreach",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-email-cold-outreach",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "3d6bc1ab-02dc-480e-a101-1f2d8472311c",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "845c59dd-0e2c-409b-8d9e-42db2b5ae7d1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "28c7f90a-2f1b-40e8-9544-fce7419bae29",
+              "name": "masterWorkflowId",
+              "value": "email-cold-outreach",
+              "type": "string"
+            },
+            {
+              "id": "e308f60d-d84c-44d2-b9c6-fe45f6356224",
+              "name": "engineWorkflowRef",
+              "value": "master-email-cold-outreach",
+              "type": "string"
+            },
+            {
+              "id": "6a3488f2-5618-4202-84f2-8f573a999555",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "673c01d4-ee29-4996-8986-525854b55327",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff646643-7b70-400f-a284-33517297ca8f",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'email-cold-outreach',\n  category: 'email',\n  intent: \"Prepare outreach sequence\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst email = {\n  to: body.to || body.email || null,\n  subject: body.subject || '[Master] Prepare outreach sequence',\n  template: 'cold-outreach',\n  tags: body.tags || ['master', 'email'],\n};\nconst valid = Boolean(email.to) || 'cold-outreach' === 'digest-daily' || 'cold-outreach' === 'inbox-triage' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, email, action: 'cold-outreach', next: valid ? 'send_or_route' : 'reject' } }];"
+      },
+      "id": "6eef9313-2bf8-4439-ba77-16e726f0420c",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "516bd9b8-f67e-4313-8e79-937e202e1fdb",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7d3900b7-534c-4241-9ec5-9f640dc294c1",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real email integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "5998c5f8-b994-4c07-a65f-17eaf714920a",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real EMAIL API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "289d5ae2-be95-49b7-b7ee-b1efa2473552",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "5a68d5f9-a1e9-409a-99e7-39efd0f13c74",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "e3562ff6-0583-49fb-b536-9769d78aea00",
+              "name": "masterWorkflowId",
+              "value": "email-cold-outreach",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "412646ef-fc97-4a98-93e0-7b33624859d5",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'email-cold-outreach',\n    category: 'email',\n    action: 'cold-outreach',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master email/cold-outreach completed',\n  }\n}];"
+      },
+      "id": "33dddef5-2ca5-4685-b09a-10ca1d3139a3",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "acdc3c8f-46c4-4fb8-bf58-0022d987564f",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "email-cold-outreach",
+    "engineWorkflowRef": "master-email-cold-outreach"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "name": "Live | WHATSAPP | OTP delivery",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-whatsapp-otp-delivery",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "44cfd38b-014d-435b-8177-be3619745f35",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "6fd6ddef-eecd-4a3a-a45c-2dbcac71e469"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "51fe0c08-efc5-40ea-98d6-fc696bcaf3d9",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-otp-delivery",
+              "type": "string"
+            },
+            {
+              "id": "40d374ec-5a7d-4119-8283-3425a17406db",
+              "name": "engineWorkflowRef",
+              "value": "live-whatsapp-otp-delivery",
+              "type": "string"
+            },
+            {
+              "id": "645e2df4-9da6-4a63-9d38-0785fc9305ae",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "cf821d0f-91d0-4a0e-b9ca-8a488d133bbd",
+              "name": "action",
+              "value": "otp-delivery",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "83e50653-2c25-4cc4-9654-531f080c6280",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-otp-delivery',\n    category: 'whatsapp',\n    action: 'otp-delivery',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/otp-delivery completed on n8n',\n  }\n}];"
+      },
+      "id": "f0fcbdb2-f855-4442-9fdd-09594ef0a60e",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "3cf0689f-3311-48d2-bc77-186dee98f732",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

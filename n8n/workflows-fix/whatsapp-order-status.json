@@ -1,0 +1,125 @@
+{
+  "name": "Master Fix | WHATSAPP | Order status",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-whatsapp-order-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c2ce3429-aced-4954-8144-1c77545497a7",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "de4cd8ed-6814-4adf-ac91-ba94b63b72fe"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2da0044f-e941-4d5c-a169-fb7d6ce83ebc",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-order-status",
+              "type": "string"
+            },
+            {
+              "id": "51543a0e-a720-4331-9366-de319c39c67b",
+              "name": "engineWorkflowRef",
+              "value": "master-whatsapp-order-status",
+              "type": "string"
+            },
+            {
+              "id": "e4ce3a7e-5df6-4c8a-99ff-d21e4d0dc527",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "5b2c6954-1885-44cf-a752-8ad8b52dd094",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst lead = {\n  name: body.name || body.fullName || 'Unknown',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n};\nreturn [{\n  json: {\n    ...body,\n    masterWorkflowId: 'whatsapp-order-status',\n    category: 'whatsapp',\n    action: 'order-status',\n    intent: \"Order status message\",\n    lead,\n    ok: true,\n    integration: { provider: 'stub', status: 'accepted', at: new Date().toISOString() },\n    message: 'Master whatsapp/order-status completed',\n  }\n}];"
+      },
+      "id": "cf035006-d2b3-4dbd-918c-f1bf3510ccd8",
+      "name": "Process payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d2443ad7-2241-4f32-b068-3c4392a406b0",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "name": "Master Fix | CRM | Lead capture",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-crm-lead-capture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "60b1398d-0685-4645-9fd8-5cd212b1c056",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "6ca7f743-4f38-43b9-b206-59ced64f9431"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8022141f-5685-4e2c-9778-928b56545a0c",
+              "name": "masterWorkflowId",
+              "value": "crm-lead-capture",
+              "type": "string"
+            },
+            {
+              "id": "d50a2e40-7782-4ea6-a9b6-67c2647ecdba",
+              "name": "engineWorkflowRef",
+              "value": "master-crm-lead-capture",
+              "type": "string"
+            },
+            {
+              "id": "4bd30ecd-fe3a-484a-9d76-982788130d4b",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "301aff45-4ff3-4aa9-b869-ba394ac565a8",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst lead = {\n  name: body.name || body.fullName || 'Unknown',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n};\nreturn [{\n  json: {\n    ...body,\n    masterWorkflowId: 'crm-lead-capture',\n    category: 'crm',\n    action: 'lead-capture',\n    intent: \"Create CRM lead\",\n    lead,\n    ok: true,\n    integration: { provider: 'stub', status: 'accepted', at: new Date().toISOString() },\n    message: 'Master crm/lead-capture completed',\n  }\n}];"
+      },
+      "id": "8c367043-555d-4f6d-b77f-dd3aa6611576",
+      "name": "Process payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "a061bdf2-8956-4df7-a9a3-42634e2df4cb",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,160 @@
+id: master
+namespace: company.recruitment
+description: |
+  Master template for company.recruitment (workflows 21–30).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "3"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - applicant_auto_responder
+      - resume_screening_ai
+      - interview_booking_linker
+      - interview_feedback_collector
+      - offer_letter_generator
+      - background_check_trigger
+      - rejection_email_delayer
+      - talent_pool_tagging
+      - job_board_multi_poster
+      - salary_benchmarking
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      applicant_auto_responder:
+        - id: log_applicant_auto_responder
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 21. Applicant Auto-Responder
+            Goal: SendGrid/Mailgun auto-reply
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_applicant_auto_responder
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK applicant_auto_responder — replace this stub with jdbc/openai/http/pdf plugins"
+      resume_screening_ai:
+        - id: log_resume_screening_ai
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 22. Resume Screening AI
+            Goal: PDF extract + OpenAI score
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_resume_screening_ai
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK resume_screening_ai — replace this stub with jdbc/openai/http/pdf plugins"
+      interview_booking_linker:
+        - id: log_interview_booking_linker
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 23. Interview Booking Linker
+            Goal: Calendly/Cal.com link
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_interview_booking_linker
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK interview_booking_linker — replace this stub with jdbc/openai/http/pdf plugins"
+      interview_feedback_collector:
+        - id: log_interview_feedback_collector
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 24. Interview Feedback Collector
+            Goal: Delay then SMS feedback request
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_interview_feedback_collector
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK interview_feedback_collector — replace this stub with jdbc/openai/http/pdf plugins"
+      offer_letter_generator:
+        - id: log_offer_letter_generator
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 25. Offer Letter Generator
+            Goal: PDF from template
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_offer_letter_generator
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK offer_letter_generator — replace this stub with jdbc/openai/http/pdf plugins"
+      background_check_trigger:
+        - id: log_background_check_trigger
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 26. Background Check Trigger
+            Goal: Checkr/Sterling API
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_background_check_trigger
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK background_check_trigger — replace this stub with jdbc/openai/http/pdf plugins"
+      rejection_email_delayer:
+        - id: log_rejection_email_delayer
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 27. Rejection Email Delayer
+            Goal: Delay 48h then reject email
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_rejection_email_delayer
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK rejection_email_delayer — replace this stub with jdbc/openai/http/pdf plugins"
+      talent_pool_tagging:
+        - id: log_talent_pool_tagging
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 28. Talent Pool Tagging
+            Goal: OpenAI tags + DB write
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_talent_pool_tagging
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK talent_pool_tagging — replace this stub with jdbc/openai/http/pdf plugins"
+      job_board_multi_poster:
+        - id: log_job_board_multi_poster
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 29. Job Board Multi-Poster
+            Goal: Parallel job board posts
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_job_board_multi_poster
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK job_board_multi_poster — replace this stub with jdbc/openai/http/pdf plugins"
+      salary_benchmarking:
+        - id: log_salary_benchmarking
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 30. Salary Benchmarking
+            Goal: Salary API sync
+            Namespace: company.recruitment
+            Payload: {{ inputs.payload }}
+        - id: done_salary_benchmarking
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK salary_benchmarking — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

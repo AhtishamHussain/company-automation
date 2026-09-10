@@ -1,0 +1,280 @@
+{
+  "name": "Master | CRM | Contact dedupe",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-crm-contact-dedupe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8e6560f1-6747-4bf0-8de6-29614cc84c94",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "2f562554-8eef-452b-a39c-8d209dcdf853"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b17188d3-839c-458b-8e1d-fa99fa2e57df",
+              "name": "masterWorkflowId",
+              "value": "crm-contact-dedupe",
+              "type": "string"
+            },
+            {
+              "id": "e1a4d3b6-f66b-4b2b-bb9c-9e60bb704f5c",
+              "name": "engineWorkflowRef",
+              "value": "master-crm-contact-dedupe",
+              "type": "string"
+            },
+            {
+              "id": "73b1b27e-6a4e-445a-91fa-1e5bd427c142",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "fc47ba48-9fd8-448f-a555-a8a86ccaae7d",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6ad0796c-705b-4f30-99c8-cfd0e850bb6f",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'crm-contact-dedupe',\n  category: 'crm',\n  intent: \"Detect duplicate contacts\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst lead = {\n  name: body.name || body.fullName || 'Unknown lead',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n  stage: body.stage || ( 'contact-dedupe' === 'won-deal-handoff' ? 'won' : 'new' ),\n};\nconst valid = Boolean(lead.email || lead.company || body.dealId || body.source === 'master-app' || body.source === 'master-test');\nreturn [{ json: { ...meta, valid, lead, action: 'contact-dedupe', next: valid ? 'sync_crm' : 'reject' } }];"
+      },
+      "id": "6dc83ea1-dffb-4098-8d28-e93d0736bf50",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "fb203229-6623-4f59-b1b4-d39084ea0c6e",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9fe600fa-dd1e-41d8-b011-688882682019",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real crm integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "9bd9c7e3-279c-4eee-bfff-07aa9738e9bc",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real CRM API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1a70b8b2-5dba-4628-9ab6-46ed4da999f6",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "d63fa159-070f-4ed1-8875-1666dede6613",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "ad25c43c-105a-4e4a-96f3-870063128638",
+              "name": "masterWorkflowId",
+              "value": "crm-contact-dedupe",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "05cc66c4-496d-4241-81a1-1852cdb14943",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'crm-contact-dedupe',\n    category: 'crm',\n    action: 'contact-dedupe',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master crm/contact-dedupe completed',\n  }\n}];"
+      },
+      "id": "3e38d818-5c09-4771-87a6-c689fa2bfb98",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "34156dc9-81e0-497d-b07c-6321896b0e8a",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "crm-contact-dedupe",
+    "engineWorkflowRef": "master-crm-contact-dedupe"
+  }
+}

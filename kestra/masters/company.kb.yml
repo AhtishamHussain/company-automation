@@ -1,0 +1,126 @@
+id: master
+namespace: company.kb
+description: |
+  Master catalog domain: Knowledge Base (8 workflows).
+  Execute with inputs.workflow_key matching the catalog slug (underscores).
+labels:
+  architecture: master-catalog
+  domain: "Knowledge Base"
+  count: "8"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - docs_ingest
+      - chunk_embed
+      - stale_article
+      - faq_publish
+      - answer_draft
+      - access_sync
+      - multilingual_mirror
+      - kb_backup
+    description: Which Master workflow to run
+  - id: payload
+    type: JSON
+    defaults: {}
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      docs_ingest:
+        - id: log_docs_ingest
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Docs ingest
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_docs_ingest
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK docs_ingest — Master Knowledge Base"
+      chunk_embed:
+        - id: log_chunk_embed
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Chunk and embed
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_chunk_embed
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK chunk_embed — Master Knowledge Base"
+      stale_article:
+        - id: log_stale_article
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Stale article detect
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_stale_article
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK stale_article — Master Knowledge Base"
+      faq_publish:
+        - id: log_faq_publish
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] FAQ publish
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_faq_publish
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK faq_publish — Master Knowledge Base"
+      answer_draft:
+        - id: log_answer_draft
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Answer draft
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_answer_draft
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK answer_draft — Master Knowledge Base"
+      access_sync:
+        - id: log_access_sync
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Access sync
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_access_sync
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK access_sync — Master Knowledge Base"
+      multilingual_mirror:
+        - id: log_multilingual_mirror
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Multilingual mirror
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_multilingual_mirror
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK multilingual_mirror — Master Knowledge Base"
+      kb_backup:
+        - id: log_kb_backup
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] KB backup
+            Namespace: company.kb
+            Payload: {{ inputs.payload }}
+        - id: done_kb_backup
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK kb_backup — Master Knowledge Base"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

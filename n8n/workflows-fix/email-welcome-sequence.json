@@ -1,0 +1,125 @@
+{
+  "name": "Master Fix | EMAIL | Welcome sequence",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-email-welcome-sequence",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4494aec4-94fe-48a6-8e9c-8b2b7400b31f",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "26f918aa-2df7-4155-9106-46ba491e4ecf"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "125c897a-6736-4d1c-a3ec-f95751bf786f",
+              "name": "masterWorkflowId",
+              "value": "email-welcome-sequence",
+              "type": "string"
+            },
+            {
+              "id": "3cb9d80d-a977-4d5b-aef1-c4d86c2d9879",
+              "name": "engineWorkflowRef",
+              "value": "master-email-welcome-sequence",
+              "type": "string"
+            },
+            {
+              "id": "9a8891ad-0628-41c8-aef9-db7e8c7c5e0d",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "476c5445-f33a-4a97-b675-44c9c0641432",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst lead = {\n  name: body.name || body.fullName || 'Unknown',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n};\nreturn [{\n  json: {\n    ...body,\n    masterWorkflowId: 'email-welcome-sequence',\n    category: 'email',\n    action: 'welcome-sequence',\n    intent: \"Welcome email\",\n    lead,\n    ok: true,\n    integration: { provider: 'stub', status: 'accepted', at: new Date().toISOString() },\n    message: 'Master email/welcome-sequence completed',\n  }\n}];"
+      },
+      "id": "207914dd-7832-4642-9488-9580091c764c",
+      "name": "Process payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "f918ac86-b988-4429-93bf-2c5e4f76b5d7",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

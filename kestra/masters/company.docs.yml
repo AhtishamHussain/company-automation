@@ -1,0 +1,126 @@
+id: master
+namespace: company.docs
+description: |
+  Master catalog domain: Document Parsing (8 workflows).
+  Execute with inputs.workflow_key matching the catalog slug (underscores).
+labels:
+  architecture: master-catalog
+  domain: "Document Parsing"
+  count: "8"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - ocr_pipeline
+      - invoice_extract
+      - contract_classify
+      - id_verify
+      - receipt_expense
+      - form_digitize
+      - redact_pii
+      - batch_pdf_split
+    description: Which Master workflow to run
+  - id: payload
+    type: JSON
+    defaults: {}
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      ocr_pipeline:
+        - id: log_ocr_pipeline
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] OCR pipeline
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_ocr_pipeline
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK ocr_pipeline — Master Document Parsing"
+      invoice_extract:
+        - id: log_invoice_extract
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Invoice extract
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_invoice_extract
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK invoice_extract — Master Document Parsing"
+      contract_classify:
+        - id: log_contract_classify
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Contract classify
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_contract_classify
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK contract_classify — Master Document Parsing"
+      id_verify:
+        - id: log_id_verify
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] ID verify parse
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_id_verify
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK id_verify — Master Document Parsing"
+      receipt_expense:
+        - id: log_receipt_expense
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Receipt to expense
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_receipt_expense
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK receipt_expense — Master Document Parsing"
+      form_digitize:
+        - id: log_form_digitize
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Form digitize
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_form_digitize
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK form_digitize — Master Document Parsing"
+      redact_pii:
+        - id: log_redact_pii
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Redact PII
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_redact_pii
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK redact_pii — Master Document Parsing"
+      batch_pdf_split:
+        - id: log_batch_pdf_split
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Batch PDF split
+            Namespace: company.docs
+            Payload: {{ inputs.payload }}
+        - id: done_batch_pdf_split
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK batch_pdf_split — Master Document Parsing"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

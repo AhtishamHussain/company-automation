@@ -1,0 +1,160 @@
+id: master
+namespace: company.operations
+description: |
+  Master template for company.operations (workflows 1–10).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "1"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - daily_standup_aggregator
+      - e_sign_contract_tracker
+      - office_inventory_alerts
+      - expense_approval_router
+      - system_health_check
+      - social_media_multi_poster
+      - feedback_sentiment_analyzer
+      - calendar_synchronizer
+      - guest_wifi_provisioner
+      - data_backup_archiver
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      daily_standup_aggregator:
+        - id: log_daily_standup_aggregator
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 1. Daily Standup Aggregator
+            Goal: Fetch standup data then post to Slack
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_daily_standup_aggregator
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK daily_standup_aggregator — replace this stub with jdbc/openai/http/pdf plugins"
+      e_sign_contract_tracker:
+        - id: log_e_sign_contract_tracker
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 2. E-Sign Contract Tracker
+            Goal: Track DocuSign/HelloSign webhook events
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_e_sign_contract_tracker
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK e_sign_contract_tracker — replace this stub with jdbc/openai/http/pdf plugins"
+      office_inventory_alerts:
+        - id: log_office_inventory_alerts
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 3. Office Inventory Alerts
+            Goal: Query inventory DB and email low-stock alerts
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_office_inventory_alerts
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK office_inventory_alerts — replace this stub with jdbc/openai/http/pdf plugins"
+      expense_approval_router:
+        - id: log_expense_approval_router
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 4. Expense Approval Router
+            Goal: Route expense by amount to manager API
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_expense_approval_router
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK expense_approval_router — replace this stub with jdbc/openai/http/pdf plugins"
+      system_health_check:
+        - id: log_system_health_check
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 5. System Health Check
+            Goal: Ping URLs and switch on health status
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_system_health_check
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK system_health_check — replace this stub with jdbc/openai/http/pdf plugins"
+      social_media_multi_poster:
+        - id: log_social_media_multi_poster
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 6. Social Media Multi-Poster
+            Goal: Parallel post to LinkedIn/X
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_social_media_multi_poster
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK social_media_multi_poster — replace this stub with jdbc/openai/http/pdf plugins"
+      feedback_sentiment_analyzer:
+        - id: log_feedback_sentiment_analyzer
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 7. Feedback Sentiment Analyzer
+            Goal: OpenAI sentiment + If branch
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_feedback_sentiment_analyzer
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK feedback_sentiment_analyzer — replace this stub with jdbc/openai/http/pdf plugins"
+      calendar_synchronizer:
+        - id: log_calendar_synchronizer
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 8. Calendar Synchronizer
+            Goal: Sync Google and Outlook calendars
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_calendar_synchronizer
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK calendar_synchronizer — replace this stub with jdbc/openai/http/pdf plugins"
+      guest_wifi_provisioner:
+        - id: log_guest_wifi_provisioner
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 9. Guest Wi-Fi Provisioner
+            Goal: Provision guest Wi-Fi and email codes
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_guest_wifi_provisioner
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK guest_wifi_provisioner — replace this stub with jdbc/openai/http/pdf plugins"
+      data_backup_archiver:
+        - id: log_data_backup_archiver
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 10. Data Backup Archiver
+            Goal: Archive and upload weekly backup
+            Namespace: company.operations
+            Payload: {{ inputs.payload }}
+        - id: done_data_backup_archiver
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK data_backup_archiver — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

@@ -1,0 +1,137 @@
+id: master
+namespace: company.invoice
+description: |
+  Master catalog domain: Invoice (9 workflows).
+  Execute with inputs.workflow_key matching the catalog slug (underscores).
+labels:
+  architecture: master-catalog
+  domain: "Invoice"
+  count: "9"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - invoice_generate
+      - invoice_send
+      - payment_reconcile
+      - overdue_dunning
+      - tax_export
+      - credit_note
+      - vendor_bill_ingest
+      - fx_revalue
+      - invoice_anomaly
+    description: Which Master workflow to run
+  - id: payload
+    type: JSON
+    defaults: {}
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      invoice_generate:
+        - id: log_invoice_generate
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Generate invoices
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_invoice_generate
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK invoice_generate — Master Invoice"
+      invoice_send:
+        - id: log_invoice_send
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Send invoices
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_invoice_send
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK invoice_send — Master Invoice"
+      payment_reconcile:
+        - id: log_payment_reconcile
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Payment reconciliation
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_payment_reconcile
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK payment_reconcile — Master Invoice"
+      overdue_dunning:
+        - id: log_overdue_dunning
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Overdue dunning
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_overdue_dunning
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK overdue_dunning — Master Invoice"
+      tax_export:
+        - id: log_tax_export
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Tax export
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_tax_export
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK tax_export — Master Invoice"
+      credit_note:
+        - id: log_credit_note
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Credit note flow
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_credit_note
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK credit_note — Master Invoice"
+      vendor_bill_ingest:
+        - id: log_vendor_bill_ingest
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Vendor bill ingest
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_vendor_bill_ingest
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK vendor_bill_ingest — Master Invoice"
+      fx_revalue:
+        - id: log_fx_revalue
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] FX revaluation
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_fx_revalue
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK fx_revalue — Master Invoice"
+      invoice_anomaly:
+        - id: log_invoice_anomaly
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] Invoice anomaly scan
+            Namespace: company.invoice
+            Payload: {{ inputs.payload }}
+        - id: done_invoice_anomaly
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK invoice_anomaly — Master Invoice"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

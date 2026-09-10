@@ -1,0 +1,280 @@
+{
+  "name": "Master | CRM | Lost reason log",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-crm-lost-reason-log",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "283ddfd8-2de4-413b-b43e-023d3c1c2fa0",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "57e23573-e568-4688-9d5f-d12b901bd86c"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c49524b7-19cf-46cf-a226-b85763f9bead",
+              "name": "masterWorkflowId",
+              "value": "crm-lost-reason-log",
+              "type": "string"
+            },
+            {
+              "id": "c3ac48d7-4840-443d-8671-5aabbcf67491",
+              "name": "engineWorkflowRef",
+              "value": "master-crm-lost-reason-log",
+              "type": "string"
+            },
+            {
+              "id": "44ef041f-cca0-4e77-94ca-7073903183e8",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "564cf214-cdff-4ebc-8519-1f93ae0648e5",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "70261865-0ef9-486f-a929-a5720512b337",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'crm-lost-reason-log',\n  category: 'crm',\n  intent: \"Require and store loss reason\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst lead = {\n  name: body.name || body.fullName || 'Unknown lead',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n  stage: body.stage || ( 'lost-reason-log' === 'won-deal-handoff' ? 'won' : 'new' ),\n};\nconst valid = Boolean(lead.email || lead.company || body.dealId || body.source === 'master-app' || body.source === 'master-test');\nreturn [{ json: { ...meta, valid, lead, action: 'lost-reason-log', next: valid ? 'sync_crm' : 'reject' } }];"
+      },
+      "id": "8055040f-370f-4a6b-9f09-35c01be46708",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cf6a58d0-63b9-48cf-95d4-8e29d7a23799",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ecf7f7b9-a315-496b-bc30-996bc914a55e",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real crm integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "aaf42808-0dd8-4b33-b21a-dcf77e7bcff7",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real CRM API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d03cb242-6e67-461d-865f-d3fbc1a67d29",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "d891758b-e6d4-4fc2-b181-e8c93b086169",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "a75efe8c-aae9-4a64-9707-ffdca4c9c729",
+              "name": "masterWorkflowId",
+              "value": "crm-lost-reason-log",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9a605b46-432d-42fe-82f8-fe0847ded17a",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'crm-lost-reason-log',\n    category: 'crm',\n    action: 'lost-reason-log',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master crm/lost-reason-log completed',\n  }\n}];"
+      },
+      "id": "48ba84e3-c21c-46cd-afde-e99b1088c7b8",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "fe05d2e0-6489-48ff-8192-822b498192ea",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "crm-lost-reason-log",
+    "engineWorkflowRef": "master-crm-lost-reason-log"
+  }
+}

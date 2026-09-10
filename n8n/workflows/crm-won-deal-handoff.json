@@ -1,0 +1,280 @@
+{
+  "name": "Master | CRM | Won deal handoff",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-crm-won-deal-handoff",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6f7f2643-ba94-4116-a88a-339e290b1d99",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "4ec86dc5-a0be-4203-880c-e6985900f3f9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e7aeda74-8d43-4767-8a7d-2b053bee497d",
+              "name": "masterWorkflowId",
+              "value": "crm-won-deal-handoff",
+              "type": "string"
+            },
+            {
+              "id": "bf7781bd-b679-42d0-8ad4-f24431aab2eb",
+              "name": "engineWorkflowRef",
+              "value": "master-crm-won-deal-handoff",
+              "type": "string"
+            },
+            {
+              "id": "5d39e5fd-baf8-4235-91b8-6c9c9461cb28",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "798d4eb3-d84f-40d9-9704-81782314d8c5",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "05434d68-efc4-45cb-a4f1-4a1985bb43ca",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'crm-won-deal-handoff',\n  category: 'crm',\n  intent: \"Hand closed-won deal to onboarding\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst lead = {\n  name: body.name || body.fullName || 'Unknown lead',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n  stage: body.stage || ( 'won-deal-handoff' === 'won-deal-handoff' ? 'won' : 'new' ),\n};\nconst valid = Boolean(lead.email || lead.company || body.dealId || body.source === 'master-app' || body.source === 'master-test');\nreturn [{ json: { ...meta, valid, lead, action: 'won-deal-handoff', next: valid ? 'sync_crm' : 'reject' } }];"
+      },
+      "id": "d64d5fb7-db68-4a24-8e52-e3aedbda5123",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "61029548-2d62-48b0-af25-d3eff725aaf1",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9b56681d-d881-4a52-b05b-2f3ad4c2f970",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real crm integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "28cc0ec1-9f82-49d6-8c82-2823b51fe5e1",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real CRM API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "539d9899-44dc-47c1-a95a-a1845e1e5bd2",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "042c0b21-73f4-4b6b-8f60-5504cd6f5a2f",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "a6f0ff63-3245-4575-945c-9e4e4f81973f",
+              "name": "masterWorkflowId",
+              "value": "crm-won-deal-handoff",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f5cde37a-2a78-46c3-8fad-a987770c34c4",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'crm-won-deal-handoff',\n    category: 'crm',\n    action: 'won-deal-handoff',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master crm/won-deal-handoff completed',\n  }\n}];"
+      },
+      "id": "46428551-dbf2-4027-9eb0-374dc914e2c1",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "c6acea91-42a5-43ff-bb7b-c64a370a1c69",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "crm-won-deal-handoff",
+    "engineWorkflowRef": "master-crm-won-deal-handoff"
+  }
+}

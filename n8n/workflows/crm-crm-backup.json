@@ -1,0 +1,280 @@
+{
+  "name": "Master | CRM | CRM backup export",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-crm-crm-backup",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d311f69b-b570-4676-910e-cbed9d5e873e",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "32d18646-294f-4181-b0fa-0efc922567d1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4971f8bf-94e7-4840-b7bc-9af0bf2ab876",
+              "name": "masterWorkflowId",
+              "value": "crm-crm-backup",
+              "type": "string"
+            },
+            {
+              "id": "de2a3cb1-82ef-4222-b877-0833c62b06a6",
+              "name": "engineWorkflowRef",
+              "value": "master-crm-crm-backup",
+              "type": "string"
+            },
+            {
+              "id": "a7d0c40a-d113-43ba-b114-142ecfeea99e",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "5da92496-14f0-41a8-898a-346f5be6772f",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d2680d6f-9765-4734-a4cb-9139d600aea3",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'crm-crm-backup',\n  category: 'crm',\n  intent: \"Export CRM snapshot payload\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst lead = {\n  name: body.name || body.fullName || 'Unknown lead',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n  stage: body.stage || ( 'crm-backup' === 'won-deal-handoff' ? 'won' : 'new' ),\n};\nconst valid = Boolean(lead.email || lead.company || body.dealId || body.source === 'master-app' || body.source === 'master-test');\nreturn [{ json: { ...meta, valid, lead, action: 'crm-backup', next: valid ? 'sync_crm' : 'reject' } }];"
+      },
+      "id": "0417e319-d471-4b59-84c2-d119dcffbd33",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "05ffdffb-6925-454d-a505-99d532fe7872",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6955372d-b389-4803-ad55-4b3f8fd4b58a",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real crm integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "317db722-5b8e-41dd-a95e-9406f9cec24b",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real CRM API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13a88f67-2036-458a-a473-56246f0e9ee9",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "3ee9a900-f756-4c6f-a8aa-c26b2cc28a39",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "a3a2021b-12c9-444c-b42e-62cd91540a00",
+              "name": "masterWorkflowId",
+              "value": "crm-crm-backup",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "603dc612-b28d-456b-9ac9-9c8022d63e89",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'crm-crm-backup',\n    category: 'crm',\n    action: 'crm-backup',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master crm/crm-backup completed',\n  }\n}];"
+      },
+      "id": "f0abafee-1370-4693-be03-e7a06930f810",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "e4a8e638-b71c-47cb-bcb9-4f4d11374f68",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "crm-crm-backup",
+    "engineWorkflowRef": "master-crm-crm-backup"
+  }
+}

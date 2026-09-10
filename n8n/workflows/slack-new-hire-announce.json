@@ -1,0 +1,280 @@
+{
+  "name": "Master | SLACK | New hire announce",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-slack-new-hire-announce",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6f382c94-6d07-4900-a6b5-10493b023028",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "3210313b-f594-42d9-bf68-16952980d9cd"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c207e9e-a2c9-4ddd-9fd1-3b773b675a66",
+              "name": "masterWorkflowId",
+              "value": "slack-new-hire-announce",
+              "type": "string"
+            },
+            {
+              "id": "ae2ae6b0-4200-4af3-9194-19f1da060e02",
+              "name": "engineWorkflowRef",
+              "value": "master-slack-new-hire-announce",
+              "type": "string"
+            },
+            {
+              "id": "18e068ff-fc70-49df-8cb7-f48a12fc0b1f",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "2799044a-270d-49f5-8946-d4fdae75203d",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c115ea55-16e7-40cc-b6d6-4d41c127e1a7",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'slack-new-hire-announce',\n  category: 'slack',\n  intent: \"Compose new-hire welcome\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst slack = {\n  channel: body.channel || '#ops',\n  text: body.text || body.message || '[Master] Compose new-hire welcome',\n  severity: body.severity || ('new-hire-announce' === 'incident-alert' ? 'critical' : 'info'),\n};\nreturn [{ json: { ...meta, valid: true, slack, action: 'new-hire-announce', next: 'post_slack' } }];"
+      },
+      "id": "4b1cb10b-00df-4f9f-823c-6dc1628441f0",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "723b2291-2ecf-4877-8a3e-1aaa5e91e758",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "752117a5-d5b7-4e40-a74c-5cb37ab33eab",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real slack integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "ec1a34c0-76dd-4069-a8be-b83591aa2383",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real SLACK API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "acd9bd36-4cb3-45be-ade2-e0070ffcc59c",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "617743f1-8d99-4e9c-aaf6-aadb7a9e400c",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "9f604f97-6a4d-486f-8cd3-d503fdb69891",
+              "name": "masterWorkflowId",
+              "value": "slack-new-hire-announce",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "92442507-1ae5-4c65-bf80-c3287ed38cbe",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'slack-new-hire-announce',\n    category: 'slack',\n    action: 'new-hire-announce',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master slack/new-hire-announce completed',\n  }\n}];"
+      },
+      "id": "3cd7c5a0-36f9-47ac-b04d-cff46a93578b",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "fe32be8e-64d1-49c4-85b8-fa3d11ee4538",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "slack-new-hire-announce",
+    "engineWorkflowRef": "master-slack-new-hire-announce"
+  }
+}

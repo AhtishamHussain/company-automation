@@ -1,0 +1,280 @@
+{
+  "name": "Master | WHATSAPP | Payment link",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-whatsapp-payment-link",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "34c17f75-3767-4024-bd23-daf80e47ea06",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "87a1b1fc-ebf1-4a89-8dd0-eb130a8b9326"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0623c2be-6a0b-4a1a-b819-cb9ee319a624",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-payment-link",
+              "type": "string"
+            },
+            {
+              "id": "5ae45417-1551-4873-8886-f983e05556b8",
+              "name": "engineWorkflowRef",
+              "value": "master-whatsapp-payment-link",
+              "type": "string"
+            },
+            {
+              "id": "a245523d-c2f8-4264-b789-d38f1ca48085",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "b222672f-90ea-4690-9952-e133ab795482",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bd2ff6c0-d540-45ca-b234-35ac1dced069",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'whatsapp-payment-link',\n  category: 'whatsapp',\n  intent: \"Send payment link message\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst wa = {\n  to: body.to || body.phone || null,\n  template: 'payment-link',\n  text: body.text || body.message || '[Master] Send payment link message',\n  locale: body.locale || 'en',\n};\nconst valid = Boolean(wa.to) || 'payment-link' === 'broadcast-optin' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, wa, action: 'payment-link', next: valid ? 'send_whatsapp' : 'reject' } }];"
+      },
+      "id": "da726408-c85b-4014-85e3-c392f05aa2c8",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "18d23c63-de75-44a3-bc56-ff50581c87cf",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "478b4200-8f91-4a23-a0e5-06bf52d1a19f",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real whatsapp integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "2671866a-5253-4950-9a3c-494949cb166b",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real WHATSAPP API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aed53678-40c9-4cd6-8faf-441560eeb2e0",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "599d8028-abbd-40ea-a1fc-4afb937ebd1c",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "9c25fc15-b0d8-4165-80c7-06c47246d074",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-payment-link",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4995c6b0-a96f-4438-9eea-46c0f8577808",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'whatsapp-payment-link',\n    category: 'whatsapp',\n    action: 'payment-link',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master whatsapp/payment-link completed',\n  }\n}];"
+      },
+      "id": "6c70ac53-cc45-4f0f-8884-332d0b828e52",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "677ae56a-98ee-4f30-a859-6843b030e516",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "whatsapp-payment-link",
+    "engineWorkflowRef": "master-whatsapp-payment-link"
+  }
+}

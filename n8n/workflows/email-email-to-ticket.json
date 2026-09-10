@@ -1,0 +1,280 @@
+{
+  "name": "Master | EMAIL | Email to ticket",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-email-email-to-ticket",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "bdf86f45-9c7f-4fac-8e0a-c2165fd6e798",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "915df974-b2a7-447f-b2b9-7c740aefcd31"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72d52bc7-bcb2-4872-9205-1d5af544d3d8",
+              "name": "masterWorkflowId",
+              "value": "email-email-to-ticket",
+              "type": "string"
+            },
+            {
+              "id": "da0ab195-8d75-4a99-ac1e-a45d8a7058e2",
+              "name": "engineWorkflowRef",
+              "value": "master-email-email-to-ticket",
+              "type": "string"
+            },
+            {
+              "id": "3388153e-5a01-4b25-989c-3743bb5e311f",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "5a570c19-954d-4e5a-82e6-2e0dc5cf33ad",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "16b4ab49-0e2b-4639-97c6-61b28ca59466",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'email-email-to-ticket',\n  category: 'email',\n  intent: \"Convert mail into support ticket\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst email = {\n  to: body.to || body.email || null,\n  subject: body.subject || '[Master] Convert mail into support ticket',\n  template: 'email-to-ticket',\n  tags: body.tags || ['master', 'email'],\n};\nconst valid = Boolean(email.to) || 'email-to-ticket' === 'digest-daily' || 'email-to-ticket' === 'inbox-triage' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, email, action: 'email-to-ticket', next: valid ? 'send_or_route' : 'reject' } }];"
+      },
+      "id": "f2ceed4a-0979-4a1e-9980-cbd0b83640a9",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "219e2699-01e9-46eb-ab25-623895e44478",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b7d2da43-36b3-4ed3-a12d-5809e0612c7d",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real email integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "14078a8f-7f01-4938-94fb-8ca4b0634de2",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real EMAIL API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "05c34542-fb89-4e79-95c5-a1b124482a0a",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "4124b803-15e9-456b-8279-30bc2ce9364f",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "563229e2-7757-44cb-9926-714fc8fb3989",
+              "name": "masterWorkflowId",
+              "value": "email-email-to-ticket",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "226c5f60-8550-461b-8e02-bbf97929ee8c",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'email-email-to-ticket',\n    category: 'email',\n    action: 'email-to-ticket',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master email/email-to-ticket completed',\n  }\n}];"
+      },
+      "id": "9ee83366-7f52-4d33-93f3-14c66cc09eb2",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "48a4bd3b-d8a0-40a2-b80a-8b3c6ac463b2",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "email-email-to-ticket",
+    "engineWorkflowRef": "master-email-email-to-ticket"
+  }
+}

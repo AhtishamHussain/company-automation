@@ -1,0 +1,280 @@
+{
+  "name": "Master | EMAIL | Inbox triage",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-email-inbox-triage",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "3a9a515a-51d1-473d-9d95-950e5aa078bb",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "0594d424-6ad8-44ef-81eb-7ecbbeab1f98"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1267b0db-aaad-4ce8-b2b0-794686d76678",
+              "name": "masterWorkflowId",
+              "value": "email-inbox-triage",
+              "type": "string"
+            },
+            {
+              "id": "4c8aad4e-9616-4398-a9b3-0ec8b5b11fe8",
+              "name": "engineWorkflowRef",
+              "value": "master-email-inbox-triage",
+              "type": "string"
+            },
+            {
+              "id": "9e8c4e2b-d97c-47db-a267-d77e90201e8f",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "ebc343a9-30f7-4f4c-9ef7-ae3a465579ed",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6c0ed2ac-577e-4c8b-92b4-b5a2ae3a55ed",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'email-inbox-triage',\n  category: 'email',\n  intent: \"Label and route inbound mail\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst email = {\n  to: body.to || body.email || null,\n  subject: body.subject || '[Master] Label and route inbound mail',\n  template: 'inbox-triage',\n  tags: body.tags || ['master', 'email'],\n};\nconst valid = Boolean(email.to) || 'inbox-triage' === 'digest-daily' || 'inbox-triage' === 'inbox-triage' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, email, action: 'inbox-triage', next: valid ? 'send_or_route' : 'reject' } }];"
+      },
+      "id": "deaf5892-38df-408c-92ba-f68a5689e4c2",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c475f14d-28bd-4fa9-81e9-2db87edf201a",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bd526860-c719-4bef-9136-e07634efaa16",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real email integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "47cd786f-6ede-4cbb-9ff1-6a08cf361df5",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real EMAIL API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99675743-e7ad-49b8-8c9d-8d8516f3a30c",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "69182256-5a2a-47dc-aff9-57f9c8617580",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "196d36aa-8202-4a05-9b11-0b8117081ecf",
+              "name": "masterWorkflowId",
+              "value": "email-inbox-triage",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2498427-7088-4b66-b1f1-47d8c9221086",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'email-inbox-triage',\n    category: 'email',\n    action: 'inbox-triage',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master email/inbox-triage completed',\n  }\n}];"
+      },
+      "id": "98a5dc3e-8c0e-4305-b895-da785f0a8817",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "572d39ac-b21b-4a97-93de-06abbecbd5d1",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "email-inbox-triage",
+    "engineWorkflowRef": "master-email-inbox-triage"
+  }
+}

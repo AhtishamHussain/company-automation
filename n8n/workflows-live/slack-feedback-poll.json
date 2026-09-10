@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | Feedback poll",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-feedback-poll",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1ac3864e-2d69-46ae-9987-b39b2d9d9c5d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "944208f2-a887-4665-97d8-31cb3a29a26c"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "df6492d4-3c25-474d-84d6-2107c4a136ff",
+              "name": "masterWorkflowId",
+              "value": "slack-feedback-poll",
+              "type": "string"
+            },
+            {
+              "id": "42cbc14b-f9f1-4e4d-9cc6-d879069a722a",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-feedback-poll",
+              "type": "string"
+            },
+            {
+              "id": "922825d6-2c79-4a1c-ace5-2ce3b1354e82",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "d7a62fd9-7284-48ef-9589-e89ad4a5912e",
+              "name": "action",
+              "value": "feedback-poll",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "dae3d906-dcbf-4251-9735-424cf0525305",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-feedback-poll',\n    category: 'slack',\n    action: 'feedback-poll',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/feedback-poll completed on n8n',\n  }\n}];"
+      },
+      "id": "630233e3-b2d5-4965-a985-c4ba76c86ccb",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "2802fe77-f9cf-4d8c-902e-6bb8aa1413a3",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

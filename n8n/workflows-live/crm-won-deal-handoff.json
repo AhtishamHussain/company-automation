@@ -1,0 +1,131 @@
+{
+  "name": "Live | CRM | Won deal handoff",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-crm-won-deal-handoff",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "0b8a4322-02d8-4649-aed4-6905b13ff565",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "dc0342e5-9ab9-4e48-80fd-ede88ffc329f"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c99bdc1f-fc98-47c6-ba0e-81424fb4e19c",
+              "name": "masterWorkflowId",
+              "value": "crm-won-deal-handoff",
+              "type": "string"
+            },
+            {
+              "id": "9b159d5b-8845-4a42-ba55-3936623ce7b2",
+              "name": "engineWorkflowRef",
+              "value": "live-crm-won-deal-handoff",
+              "type": "string"
+            },
+            {
+              "id": "43a81893-df79-4913-bcf4-57a8fc174c92",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "4cf3e0c6-7430-4998-958a-7e5d3f789085",
+              "name": "action",
+              "value": "won-deal-handoff",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "0191ad4a-3fc7-49f8-b338-3ce293167568",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-won-deal-handoff',\n    category: 'crm',\n    action: 'won-deal-handoff',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/won-deal-handoff completed on n8n',\n  }\n}];"
+      },
+      "id": "450d1fe3-fedd-4658-86c7-ee1a0c30aed0",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "9c4ad9c4-748a-4591-a92b-42ae3da457d7",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

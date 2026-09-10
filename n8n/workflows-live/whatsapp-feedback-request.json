@@ -1,0 +1,131 @@
+{
+  "name": "Live | WHATSAPP | Feedback request",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-whatsapp-feedback-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "66d2a3d9-268d-4cde-9528-443ac54267d6",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "b58eefe4-62f9-4452-8bf9-4c4222b63bda"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb677b79-2cad-4281-a165-c63a39f52263",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-feedback-request",
+              "type": "string"
+            },
+            {
+              "id": "21026d89-f0b0-4be4-9140-d1662a3722b0",
+              "name": "engineWorkflowRef",
+              "value": "live-whatsapp-feedback-request",
+              "type": "string"
+            },
+            {
+              "id": "61590bcd-8ee2-471f-86c3-c29530a8e17d",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "4812b86d-7b7f-42bb-9ad5-4b7d2a31e45f",
+              "name": "action",
+              "value": "feedback-request",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "c154fbd1-a37e-4b0f-b184-b8072ef505ea",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-feedback-request',\n    category: 'whatsapp',\n    action: 'feedback-request',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/feedback-request completed on n8n',\n  }\n}];"
+      },
+      "id": "f4c72434-518b-4c35-838d-d76b61dfc411",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "73065cc1-cbe3-4b6e-bb89-731a2f85cbc5",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

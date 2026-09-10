@@ -1,0 +1,131 @@
+{
+  "name": "Live | WHATSAPP | Lead qualify chat",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-whatsapp-lead-qualify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d61c0676-f22b-4711-a86b-c545130f7db6",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "3693b897-a779-416e-a71b-8c8035048c06"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9bfd803c-2c63-4753-ae1f-96280badcb1c",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-lead-qualify",
+              "type": "string"
+            },
+            {
+              "id": "4a90caff-b93d-4369-9b98-de91462ecacb",
+              "name": "engineWorkflowRef",
+              "value": "live-whatsapp-lead-qualify",
+              "type": "string"
+            },
+            {
+              "id": "199e3f07-e5d3-4653-bfb0-d34e0e276e00",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "945fbe8a-c3f3-49b5-a818-24c91f845727",
+              "name": "action",
+              "value": "lead-qualify",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "5dc565b6-688f-47ab-b512-9953b231154b",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-lead-qualify',\n    category: 'whatsapp',\n    action: 'lead-qualify',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/lead-qualify completed on n8n',\n  }\n}];"
+      },
+      "id": "6593d114-2653-4130-9a29-af95349545f6",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "18be7e05-974b-447b-be29-854b06cade1d",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

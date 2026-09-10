@@ -1,0 +1,280 @@
+{
+  "name": "Master | SLACK | On-call rotate",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-slack-oncall-rotate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "57d1f383-8a25-48b7-a3f1-97c1aeba7c0e",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d408c453-f9df-4812-81b9-b0c39758131d"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "297580ac-1221-4e90-81a5-757b183750e3",
+              "name": "masterWorkflowId",
+              "value": "slack-oncall-rotate",
+              "type": "string"
+            },
+            {
+              "id": "624d223a-30fc-4f4c-816a-09d82b1990f3",
+              "name": "engineWorkflowRef",
+              "value": "master-slack-oncall-rotate",
+              "type": "string"
+            },
+            {
+              "id": "7b2533f2-eff8-48a5-8971-027e909aeb2a",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "14899a9d-4b9d-4c42-8101-27be97d5b464",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "937c4776-7849-40eb-b9b2-99953026f719",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'slack-oncall-rotate',\n  category: 'slack',\n  intent: \"Compute next on-call\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst slack = {\n  channel: body.channel || '#ops',\n  text: body.text || body.message || '[Master] Compute next on-call',\n  severity: body.severity || ('oncall-rotate' === 'incident-alert' ? 'critical' : 'info'),\n};\nreturn [{ json: { ...meta, valid: true, slack, action: 'oncall-rotate', next: 'post_slack' } }];"
+      },
+      "id": "8a1d3232-8177-407b-9d25-005a7adcb013",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "f15c3a16-34e1-4aeb-8ca9-9c01d0d64f26",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "56d60507-a5a7-4d17-a9d6-827643ec9e9b",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real slack integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "cb954147-f23d-4001-8dbc-37fceea46190",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real SLACK API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d7e08e94-d0dc-4797-9f50-a97e3f79de57",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "6404b9db-4339-401e-a965-482b154e4567",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "e9c61b4e-fa25-494b-9a72-19a131fed883",
+              "name": "masterWorkflowId",
+              "value": "slack-oncall-rotate",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "79e9a52b-5edc-4c2f-98ae-8cf1b09710f6",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'slack-oncall-rotate',\n    category: 'slack',\n    action: 'oncall-rotate',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master slack/oncall-rotate completed',\n  }\n}];"
+      },
+      "id": "0281ffc2-556a-4735-acdd-197062f551fa",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "53a56ede-4721-450e-8f0d-c5e4663999dc",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "slack-oncall-rotate",
+    "engineWorkflowRef": "master-slack-oncall-rotate"
+  }
+}

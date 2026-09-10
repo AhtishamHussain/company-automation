@@ -1,0 +1,160 @@
+id: master
+namespace: company.support
+description: |
+  Master template for company.support (workflows 91–100).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "10"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - ticket_create
+      - auto_tag
+      - sla_breach_alert
+      - macro_suggest
+      - csat_survey
+      - refund_flow
+      - bug_escalate
+      - kb_deflect
+      - proposal_draft
+      - proposal_send_track
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      ticket_create:
+        - id: log_ticket_create
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 91. Ticket Create
+            Goal: Ticket Create
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_ticket_create
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK ticket_create — replace this stub with jdbc/openai/http/pdf plugins"
+      auto_tag:
+        - id: log_auto_tag
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 92. Auto Tag
+            Goal: Auto Tag
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_auto_tag
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK auto_tag — replace this stub with jdbc/openai/http/pdf plugins"
+      sla_breach_alert:
+        - id: log_sla_breach_alert
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 93. SLA Breach Alert
+            Goal: SLA Breach Alert
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_sla_breach_alert
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK sla_breach_alert — replace this stub with jdbc/openai/http/pdf plugins"
+      macro_suggest:
+        - id: log_macro_suggest
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 94. Macro Suggest
+            Goal: Macro Suggest
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_macro_suggest
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK macro_suggest — replace this stub with jdbc/openai/http/pdf plugins"
+      csat_survey:
+        - id: log_csat_survey
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 95. CSAT Survey
+            Goal: CSAT Survey
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_csat_survey
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK csat_survey — replace this stub with jdbc/openai/http/pdf plugins"
+      refund_flow:
+        - id: log_refund_flow
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 96. Refund Flow
+            Goal: Refund Flow
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_refund_flow
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK refund_flow — replace this stub with jdbc/openai/http/pdf plugins"
+      bug_escalate:
+        - id: log_bug_escalate
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 97. Bug Escalate
+            Goal: Bug Escalate
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_bug_escalate
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK bug_escalate — replace this stub with jdbc/openai/http/pdf plugins"
+      kb_deflect:
+        - id: log_kb_deflect
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 98. KB Deflect
+            Goal: KB Deflect
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_kb_deflect
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK kb_deflect — replace this stub with jdbc/openai/http/pdf plugins"
+      proposal_draft:
+        - id: log_proposal_draft
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 99. Proposal Draft Generator
+            Goal: Proposal Draft Generator
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_proposal_draft
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK proposal_draft — replace this stub with jdbc/openai/http/pdf plugins"
+      proposal_send_track:
+        - id: log_proposal_send_track
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 100. Proposal Send & Track
+            Goal: Proposal Send & Track
+            Namespace: company.support
+            Payload: {{ inputs.payload }}
+        - id: done_proposal_send_track
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK proposal_send_track — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

@@ -1,0 +1,131 @@
+{
+  "name": "Live | EMAIL | Daily digest",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-email-digest-daily",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "48a04419-8a15-49b7-b155-c5b8bf7bdad7",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d6b626ae-a8bf-4352-8de2-e6d10db228d5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "98f294e4-697c-463b-8308-9c7d4169ba8f",
+              "name": "masterWorkflowId",
+              "value": "email-digest-daily",
+              "type": "string"
+            },
+            {
+              "id": "6086b196-d1b7-4527-be5d-b6be2909d0d4",
+              "name": "engineWorkflowRef",
+              "value": "live-email-digest-daily",
+              "type": "string"
+            },
+            {
+              "id": "05641c9d-a902-4b50-bd0c-bb8a657c3b8a",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "6b8aeacb-cdee-4e9c-8910-4746f1f05325",
+              "name": "action",
+              "value": "digest-daily",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "ee28c9f8-f047-4d9d-ae2d-7b2cd00a54bc",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-digest-daily',\n    category: 'email',\n    action: 'digest-daily',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/digest-daily completed on n8n',\n  }\n}];"
+      },
+      "id": "74b2e94f-028a-44fd-a248-9b9ffb29b69e",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "5c0b7b83-4e26-4800-8662-29ddd14d1042",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "name": "Master | EMAIL | Daily digest",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-email-digest-daily",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8533314e-f6a2-44b1-b1ef-39751437e5f3",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "c53f1824-9ed0-41e7-bc95-613822a721f1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72cf1145-7a61-4bc8-8a32-8466277ac8f8",
+              "name": "masterWorkflowId",
+              "value": "email-digest-daily",
+              "type": "string"
+            },
+            {
+              "id": "d7fdb393-bd73-462a-8995-af2e0ea804b0",
+              "name": "engineWorkflowRef",
+              "value": "master-email-digest-daily",
+              "type": "string"
+            },
+            {
+              "id": "a1a4e91c-8b43-42ab-ac01-5bf587cdeb11",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "e4907267-c293-4ee3-98a0-a3a848903952",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "46710a37-6925-41f1-9302-33e54f459cd7",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'email-digest-daily',\n  category: 'email',\n  intent: \"Compile digest sections\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst email = {\n  to: body.to || body.email || null,\n  subject: body.subject || '[Master] Compile digest sections',\n  template: 'digest-daily',\n  tags: body.tags || ['master', 'email'],\n};\nconst valid = Boolean(email.to) || 'digest-daily' === 'digest-daily' || 'digest-daily' === 'inbox-triage' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, email, action: 'digest-daily', next: valid ? 'send_or_route' : 'reject' } }];"
+      },
+      "id": "c426bf4d-279a-4a94-9f99-b1e123ac1290",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "a60a1bcb-bd98-46e6-a4a0-425af55af7b5",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b7d13d48-65de-46ea-a758-2c1c6268d5bc",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real email integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "e1bb5525-129c-4055-9389-86e1b4d7956a",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real EMAIL API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "96bb38e9-ebfa-4e01-818c-0b952cc39975",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "c5563917-2613-4df2-b278-bdc88dafd2af",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "300930aa-b2c5-4997-a2f3-58044ebfd371",
+              "name": "masterWorkflowId",
+              "value": "email-digest-daily",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b20850d8-18ac-4679-adcc-66b1110a6faa",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'email-digest-daily',\n    category: 'email',\n    action: 'digest-daily',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master email/digest-daily completed',\n  }\n}];"
+      },
+      "id": "34f71a81-d02b-4e0b-a300-e4934742e840",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "f1b7adea-b49e-4c67-9604-3e5ba4fc1157",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "email-digest-daily",
+    "engineWorkflowRef": "master-email-digest-daily"
+  }
+}

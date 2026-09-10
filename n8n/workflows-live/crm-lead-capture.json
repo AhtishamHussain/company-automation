@@ -1,0 +1,131 @@
+{
+  "name": "Live | CRM | Lead capture",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-crm-lead-capture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "15be9a20-4448-4260-bda6-39fbf99f9e32",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "127d788c-dbbb-4ad8-b3eb-4af6f9617ca4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0f8f3506-1133-47e5-a988-5dfef7195c7c",
+              "name": "masterWorkflowId",
+              "value": "crm-lead-capture",
+              "type": "string"
+            },
+            {
+              "id": "c4cd7e9c-3098-44e6-b6b7-1388a47cdf93",
+              "name": "engineWorkflowRef",
+              "value": "live-crm-lead-capture",
+              "type": "string"
+            },
+            {
+              "id": "477ea0c3-1b86-4e96-b2ef-893210fd2677",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "a00b3d75-5175-435b-bdbf-938aa69f4f0f",
+              "name": "action",
+              "value": "lead-capture",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "7012cc03-930b-442e-a07e-63c141899ec4",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-lead-capture',\n    category: 'crm',\n    action: 'lead-capture',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/lead-capture completed on n8n',\n  }\n}];"
+      },
+      "id": "a0b12e28-0378-4cd4-82f8-1adcf83c0bc1",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d2d79dee-52d7-4168-bcb6-71fdec7bdf02",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | Incident alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-incident-alert",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4fef1279-8f86-439d-bbf0-773a6237741e",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "5d369700-36c2-4283-abfb-2b46bffe0c37"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ed2750c-8f80-4cce-9852-ed6d72ff5c0f",
+              "name": "masterWorkflowId",
+              "value": "slack-incident-alert",
+              "type": "string"
+            },
+            {
+              "id": "933f41db-e66a-4d13-995e-74bb0b8a0634",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-incident-alert",
+              "type": "string"
+            },
+            {
+              "id": "528da193-0ee2-4534-bce7-d007bd08fcd7",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "42c7f94c-d9ac-42e6-8cc8-490a0368c156",
+              "name": "action",
+              "value": "incident-alert",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "50bf5ac2-bb7d-41e0-be5b-55b0b289ab17",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-incident-alert',\n    category: 'slack',\n    action: 'incident-alert',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/incident-alert completed on n8n',\n  }\n}];"
+      },
+      "id": "32efda11-7346-4be2-ae5a-80e666a9df92",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "fa33bdd3-fc85-40a7-ac22-4596a633a258",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "name": "Live | CRM | Stale deal nudge",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-crm-stale-deal-nudge",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8735f1fe-8fd0-4b1c-8f5b-482b36c65731",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "da179ead-6984-4d1c-8d69-b6340573d1a6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "da09de8d-b495-4fc8-b25b-23b31fee5b9e",
+              "name": "masterWorkflowId",
+              "value": "crm-stale-deal-nudge",
+              "type": "string"
+            },
+            {
+              "id": "d1339f4c-6c79-4f12-9aa3-5e350850d91b",
+              "name": "engineWorkflowRef",
+              "value": "live-crm-stale-deal-nudge",
+              "type": "string"
+            },
+            {
+              "id": "0e265b7b-6491-49f4-a901-411a0f0fc8d3",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "b5bc5066-1c29-4053-9454-db67b2743464",
+              "name": "action",
+              "value": "stale-deal-nudge",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "e30cefd1-e8f0-401a-a6c9-a824d5a6054b",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-stale-deal-nudge',\n    category: 'crm',\n    action: 'stale-deal-nudge',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/stale-deal-nudge completed on n8n',\n  }\n}];"
+      },
+      "id": "d46ca4ac-9c49-490c-bd09-bf252ef3fc1d",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "e63f25a7-e92c-4c34-8dfc-48711ba4a245",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "master",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "seed:n8n": "node scripts/seed-n8n-live.mjs",
+    "seed:n8n:legacy": "node scripts/seed-n8n.mjs",
+    "generate:kestra": "node scripts/generate-kestra-masters.mjs && node scripts/generate-kestra-master-domains.mjs",
+    "seed:kestra": "node scripts/seed-kestra.mjs",
+    "generate:kestra:domains": "node scripts/generate-kestra-master-domains.mjs",
+    "workers:ap": "node workers/ap-bridge/server.mjs",
+    "workers:trigger": "node workers/trigger-bridge/server.mjs"
+  },
+  "dependencies": {
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

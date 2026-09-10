@@ -1,0 +1,280 @@
+{
+  "name": "Master | EMAIL | Bounce handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-email-bounce-handler",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f208dd36-5764-442d-a35f-83753aa8fcfb",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "dc7e70a0-b25f-4d50-b843-5511978e25e0"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bc75957b-1c76-46ca-b428-b0dbebcba489",
+              "name": "masterWorkflowId",
+              "value": "email-bounce-handler",
+              "type": "string"
+            },
+            {
+              "id": "2da261e0-4c3b-421f-8c62-e81265db36bd",
+              "name": "engineWorkflowRef",
+              "value": "master-email-bounce-handler",
+              "type": "string"
+            },
+            {
+              "id": "c7b19cc8-c71c-494f-9302-e83e5cb12f0b",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "9adf050d-e13e-4557-8730-0ab0fa4dcf72",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "543a4407-6293-455c-8588-fefabeb9e7c2",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'email-bounce-handler',\n  category: 'email',\n  intent: \"Suppress bounced addresses\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst email = {\n  to: body.to || body.email || null,\n  subject: body.subject || '[Master] Suppress bounced addresses',\n  template: 'bounce-handler',\n  tags: body.tags || ['master', 'email'],\n};\nconst valid = Boolean(email.to) || 'bounce-handler' === 'digest-daily' || 'bounce-handler' === 'inbox-triage' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, email, action: 'bounce-handler', next: valid ? 'send_or_route' : 'reject' } }];"
+      },
+      "id": "c641a789-7b6a-4152-8f47-86616cd45905",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "80b0ae29-42d0-4235-baeb-c1180b459af7",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5b11a18e-49ff-4928-8872-6d718e672fc0",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real email integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "4478fdf9-42e5-4d2a-8d0a-0d17ab5214ed",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real EMAIL API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "194310a8-125b-4a05-a346-4432fc8a87d7",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "d292216c-377f-43b4-9278-35a84d99ffc6",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "d8240d7f-dcda-4e2f-b725-7bc5aaea0359",
+              "name": "masterWorkflowId",
+              "value": "email-bounce-handler",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4fceeadf-91ad-4e4e-9034-32e1078dd2f5",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'email-bounce-handler',\n    category: 'email',\n    action: 'bounce-handler',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master email/bounce-handler completed',\n  }\n}];"
+      },
+      "id": "3aabbc4e-a9c2-4914-ade9-5abbff905acc",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "fd6e2894-437f-4741-8052-3359e12b07a3",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "email-bounce-handler",
+    "engineWorkflowRef": "master-email-bounce-handler"
+  }
+}

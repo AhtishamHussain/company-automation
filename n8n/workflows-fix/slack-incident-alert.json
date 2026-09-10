@@ -1,0 +1,125 @@
+{
+  "name": "Master Fix | SLACK | Incident alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-slack-incident-alert",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7ab1face-c108-4a7d-81e8-f284ac6932e7",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d0b69377-fdd1-4516-8f62-2553fbad0ae7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1315650-a97e-4ad1-9483-3aafb2161cd8",
+              "name": "masterWorkflowId",
+              "value": "slack-incident-alert",
+              "type": "string"
+            },
+            {
+              "id": "e94ed71a-e09a-47bf-a921-b48d10339a0b",
+              "name": "engineWorkflowRef",
+              "value": "master-slack-incident-alert",
+              "type": "string"
+            },
+            {
+              "id": "fd451d03-4d5a-4cec-b6e3-27c46d252fc3",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "a143e224-d750-4729-9e6b-9b2fa1a5bc3a",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst lead = {\n  name: body.name || body.fullName || 'Unknown',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n};\nreturn [{\n  json: {\n    ...body,\n    masterWorkflowId: 'slack-incident-alert',\n    category: 'slack',\n    action: 'incident-alert',\n    intent: \"Critical Slack alert\",\n    lead,\n    ok: true,\n    integration: { provider: 'stub', status: 'accepted', at: new Date().toISOString() },\n    message: 'Master slack/incident-alert completed',\n  }\n}];"
+      },
+      "id": "57f9f2e6-7fae-4d89-897d-037790e528b0",
+      "name": "Process payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "b7ced607-f2c9-40fd-927b-23ab29ec3855",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

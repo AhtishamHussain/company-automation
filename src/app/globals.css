@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #071018;
+  --ink-2: #0c1a24;
+  --panel: #102433;
+  --line: rgba(148, 197, 214, 0.18);
+  --fog: #9eb6c4;
+  --snow: #e8f2f6;
+  --teal: #2ec4b6;
+  --teal-deep: #1a9e93;
+  --amber: #e8b86d;
+  --background: var(--ink);
+  --foreground: var(--snow);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --color-fog: var(--fog);
+  --color-snow: var(--snow);
+  --color-teal: var(--teal);
+  --color-teal-deep: var(--teal-deep);
+  --color-amber: var(--amber);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--teal) 40%, transparent);
+  color: var(--snow);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes pulse-line {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.8s ease-out both;
+}
+
+.animate-rise-delay-1 {
+  animation: rise 0.8s ease-out 0.12s both;
+}
+
+.animate-rise-delay-2 {
+  animation: rise 0.8s ease-out 0.24s both;
+}
+
+.animate-drift {
+  animation: drift 7s ease-in-out infinite;
+}
+
+.animate-pulse-line {
+  animation: pulse-line 3.2s ease-in-out infinite;
+}

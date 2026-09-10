@@ -1,0 +1,160 @@
+id: master
+namespace: company.finance
+description: |
+  Master template for company.finance (workflows 31–40).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "4"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - email_invoice_extractor
+      - invoice_duplication_checker
+      - po_matching_verification
+      - erp_ledger_logger
+      - late_payment_escalator
+      - early_bird_discount_alert
+      - tax_compliance_validator
+      - multi_currency_converter
+      - payment_confirmation_sender
+      - audit_trail_archiver
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      email_invoice_extractor:
+        - id: log_email_invoice_extractor
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 31. Email Invoice Extractor
+            Goal: Fetch mail + write invoice files
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_email_invoice_extractor
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK email_invoice_extractor — replace this stub with jdbc/openai/http/pdf plugins"
+      invoice_duplication_checker:
+        - id: log_invoice_duplication_checker
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 32. Invoice Duplication Checker
+            Goal: DB dupe If check
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_invoice_duplication_checker
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK invoice_duplication_checker — replace this stub with jdbc/openai/http/pdf plugins"
+      po_matching_verification:
+        - id: log_po_matching_verification
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 33. PO Matching Verification
+            Goal: Switch on PO match
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_po_matching_verification
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK po_matching_verification — replace this stub with jdbc/openai/http/pdf plugins"
+      erp_ledger_logger:
+        - id: log_erp_ledger_logger
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 34. ERP Ledger Logger
+            Goal: QuickBooks/Xero post
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_erp_ledger_logger
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK erp_ledger_logger — replace this stub with jdbc/openai/http/pdf plugins"
+      late_payment_escalator:
+        - id: log_late_payment_escalator
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 35. Late Payment Escalator
+            Goal: Friday late payment Slack/email
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_late_payment_escalator
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK late_payment_escalator — replace this stub with jdbc/openai/http/pdf plugins"
+      early_bird_discount_alert:
+        - id: log_early_bird_discount_alert
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 36. Early-Bird Discount Alert
+            Goal: Scan terms with OpenAI
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_early_bird_discount_alert
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK early_bird_discount_alert — replace this stub with jdbc/openai/http/pdf plugins"
+      tax_compliance_validator:
+        - id: log_tax_compliance_validator
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 37. Tax Compliance Validator
+            Goal: VAT/Tax ID validation
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_tax_compliance_validator
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK tax_compliance_validator — replace this stub with jdbc/openai/http/pdf plugins"
+      multi_currency_converter:
+        - id: log_multi_currency_converter
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 38. Multi-Currency Converter
+            Goal: FX conversion
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_multi_currency_converter
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK multi_currency_converter — replace this stub with jdbc/openai/http/pdf plugins"
+      payment_confirmation_sender:
+        - id: log_payment_confirmation_sender
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 39. Payment Confirmation Sender
+            Goal: Stripe/bank webhook confirm
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_payment_confirmation_sender
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK payment_confirmation_sender — replace this stub with jdbc/openai/http/pdf plugins"
+      audit_trail_archiver:
+        - id: log_audit_trail_archiver
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 40. Audit Trail Archiver
+            Goal: S3 audit archive
+            Namespace: company.finance
+            Payload: {{ inputs.payload }}
+        - id: done_audit_trail_archiver
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK audit_trail_archiver — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

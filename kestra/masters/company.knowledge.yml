@@ -1,0 +1,160 @@
+id: master
+namespace: company.knowledge
+description: |
+  Master template for company.knowledge (workflows 81–90).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "9"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - docs_ingest
+      - chunk_embed
+      - stale_article_detect
+      - faq_publish
+      - answer_draft
+      - ocr_pipeline
+      - redact_pii
+      - meeting_summary
+      - action_extract
+      - kb_backup
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      docs_ingest:
+        - id: log_docs_ingest
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 81. Docs Ingest
+            Goal: Docs Ingest
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_docs_ingest
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK docs_ingest — replace this stub with jdbc/openai/http/pdf plugins"
+      chunk_embed:
+        - id: log_chunk_embed
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 82. Chunk & Embed
+            Goal: Chunk & Embed
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_chunk_embed
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK chunk_embed — replace this stub with jdbc/openai/http/pdf plugins"
+      stale_article_detect:
+        - id: log_stale_article_detect
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 83. Stale Article Detect
+            Goal: Stale Article Detect
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_stale_article_detect
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK stale_article_detect — replace this stub with jdbc/openai/http/pdf plugins"
+      faq_publish:
+        - id: log_faq_publish
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 84. FAQ Publish
+            Goal: FAQ Publish
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_faq_publish
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK faq_publish — replace this stub with jdbc/openai/http/pdf plugins"
+      answer_draft:
+        - id: log_answer_draft
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 85. Answer Draft
+            Goal: Answer Draft
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_answer_draft
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK answer_draft — replace this stub with jdbc/openai/http/pdf plugins"
+      ocr_pipeline:
+        - id: log_ocr_pipeline
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 86. OCR Pipeline
+            Goal: OCR Pipeline
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_ocr_pipeline
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK ocr_pipeline — replace this stub with jdbc/openai/http/pdf plugins"
+      redact_pii:
+        - id: log_redact_pii
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 87. Redact PII
+            Goal: Redact PII
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_redact_pii
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK redact_pii — replace this stub with jdbc/openai/http/pdf plugins"
+      meeting_summary:
+        - id: log_meeting_summary
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 88. Meeting Summary
+            Goal: Meeting Summary
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_meeting_summary
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK meeting_summary — replace this stub with jdbc/openai/http/pdf plugins"
+      action_extract:
+        - id: log_action_extract
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 89. Action Extract
+            Goal: Action Extract
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_action_extract
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK action_extract — replace this stub with jdbc/openai/http/pdf plugins"
+      kb_backup:
+        - id: log_kb_backup
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 90. KB Backup
+            Goal: KB Backup
+            Namespace: company.knowledge
+            Payload: {{ inputs.payload }}
+        - id: done_kb_backup
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK kb_backup — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

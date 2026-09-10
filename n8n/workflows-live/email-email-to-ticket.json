@@ -1,0 +1,131 @@
+{
+  "name": "Live | EMAIL | Email to ticket",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-email-email-to-ticket",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "df06ea1e-9eaf-4249-9514-13637f5a0524",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "4dbe11ce-6064-458a-9b87-ef2d29c39e06"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f4ba8ed-3d0d-409f-9afe-57f3d8758a1f",
+              "name": "masterWorkflowId",
+              "value": "email-email-to-ticket",
+              "type": "string"
+            },
+            {
+              "id": "2fe970fc-5efa-4c6a-be18-a66169e0d66b",
+              "name": "engineWorkflowRef",
+              "value": "live-email-email-to-ticket",
+              "type": "string"
+            },
+            {
+              "id": "4f46b034-7cf4-47ab-a91a-e3b75ca18879",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "a3f0ea74-9ef7-4f9b-b355-ffe29eaa78cc",
+              "name": "action",
+              "value": "email-to-ticket",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "d313a5f9-ff56-4914-829f-a71f7ccc1a6f",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-email-to-ticket',\n    category: 'email',\n    action: 'email-to-ticket',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/email-to-ticket completed on n8n',\n  }\n}];"
+      },
+      "id": "02a3622a-bdb2-46db-9fc3-cb84541ed81e",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "01c3fa8b-b2b8-43ad-8376-e4b749eaa47d",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

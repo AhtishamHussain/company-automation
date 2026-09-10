@@ -1,0 +1,131 @@
+{
+  "name": "Live | WHATSAPP | Appointment remind",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-whatsapp-appointment-remind",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e81a485d-bd3d-46d9-b932-a4de817ea469",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "9f8695ae-c873-47e3-84d6-f605268a93d1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b920724-0442-4e67-9786-263710a52e0d",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-appointment-remind",
+              "type": "string"
+            },
+            {
+              "id": "318de92a-4d66-447c-8271-0f6f952c83da",
+              "name": "engineWorkflowRef",
+              "value": "live-whatsapp-appointment-remind",
+              "type": "string"
+            },
+            {
+              "id": "b9aa977b-deb9-44bf-af94-fbf81bdc2182",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "b66ab59d-b024-4885-afbd-9f5e034a9bde",
+              "name": "action",
+              "value": "appointment-remind",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "bce4cbf8-d381-4612-a92a-b95b2d4be159",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-appointment-remind',\n    category: 'whatsapp',\n    action: 'appointment-remind',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/appointment-remind completed on n8n',\n  }\n}];"
+      },
+      "id": "6462caeb-a8c4-4212-b202-6ddfea2afa3e",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "a93ded40-77a1-48a5-a22f-f332593c0d89",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

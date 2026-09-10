@@ -1,0 +1,23 @@
+{
+  "name": "master-temporal-worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "worker": "ts-node src/worker.ts",
+    "bridge": "ts-node src/bridge.ts",
+    "start": "ts-node src/worker.ts",
+    "dev": "node -e \"console.log('Run worker and bridge in two terminals: npm run worker / npm run bridge')\""
+  },
+  "dependencies": {
+    "@temporalio/activity": "^1.11.7",
+    "@temporalio/client": "^1.11.7",
+    "@temporalio/worker": "^1.11.7",
+    "@temporalio/workflow": "^1.11.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  }
+}

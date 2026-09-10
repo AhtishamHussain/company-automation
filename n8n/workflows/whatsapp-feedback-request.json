@@ -1,0 +1,280 @@
+{
+  "name": "Master | WHATSAPP | Feedback request",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-whatsapp-feedback-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f8a6096d-558a-4870-a03c-8a086b1739d2",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "6a83a686-5dad-4c35-b105-ef495d57646c"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2f677b06-5e6e-4db3-8c8f-2d6dd023b5a5",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-feedback-request",
+              "type": "string"
+            },
+            {
+              "id": "4161ceea-11fe-4dcf-bc1c-a20233fc90a7",
+              "name": "engineWorkflowRef",
+              "value": "master-whatsapp-feedback-request",
+              "type": "string"
+            },
+            {
+              "id": "9bc329c4-d251-41b6-af40-a70fdcaca990",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "98f48ca6-3e6a-4b87-9962-a60123898db1",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "74aafd96-ac77-412b-ae6b-26efe8d97bec",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'whatsapp-feedback-request',\n  category: 'whatsapp',\n  intent: \"Ask CSAT on WhatsApp\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst wa = {\n  to: body.to || body.phone || null,\n  template: 'feedback-request',\n  text: body.text || body.message || '[Master] Ask CSAT on WhatsApp',\n  locale: body.locale || 'en',\n};\nconst valid = Boolean(wa.to) || 'feedback-request' === 'broadcast-optin' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, wa, action: 'feedback-request', next: valid ? 'send_whatsapp' : 'reject' } }];"
+      },
+      "id": "9216b8db-31a3-4df1-8381-27490240a2e9",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "50cc5ffa-80f0-4e71-8a78-eec2acd1ae14",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "17b76f9a-a635-48bd-9c34-55b39ce5d66a",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real whatsapp integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "43ba7ae4-ca53-4021-a7dc-23c365899f8c",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real WHATSAPP API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91a55813-8724-4f71-8b67-826e899028af",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "36f8c7e1-d5a8-46fd-ace7-671ae13574a2",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "732f824f-158c-43cd-b736-7d80ec9b0448",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-feedback-request",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0870e102-53d2-41b0-b71d-0cd00172f70c",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'whatsapp-feedback-request',\n    category: 'whatsapp',\n    action: 'feedback-request',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master whatsapp/feedback-request completed',\n  }\n}];"
+      },
+      "id": "7a4738c7-ee7c-4861-8da1-d9d5a38c85f6",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "616b5085-d31b-44e1-9d42-2f75991e2ac5",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "whatsapp-feedback-request",
+    "engineWorkflowRef": "master-whatsapp-feedback-request"
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "name": "Master | WHATSAPP | Broadcast (opt-in)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-whatsapp-broadcast-optin",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b4254b0e-789c-49a1-b1cd-cc00b7d2612c",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "a0830b5f-ccd0-4db6-9520-c1b95cc5d96b"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "688eede6-3fc7-4434-8c0f-ba15859b7b85",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-broadcast-optin",
+              "type": "string"
+            },
+            {
+              "id": "ef3566a9-06d8-40b8-b60b-9c532290e6a0",
+              "name": "engineWorkflowRef",
+              "value": "master-whatsapp-broadcast-optin",
+              "type": "string"
+            },
+            {
+              "id": "c2fe61cc-38d4-4dcb-9f06-c2325487a5ea",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "abe4276c-38c1-470c-93d9-430c3e7318e0",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1c8c81d5-a576-42eb-802e-d145b7d2fa43",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'whatsapp-broadcast-optin',\n  category: 'whatsapp',\n  intent: \"Prepare opt-in broadcast\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst wa = {\n  to: body.to || body.phone || null,\n  template: 'broadcast-optin',\n  text: body.text || body.message || '[Master] Prepare opt-in broadcast',\n  locale: body.locale || 'en',\n};\nconst valid = Boolean(wa.to) || 'broadcast-optin' === 'broadcast-optin' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, wa, action: 'broadcast-optin', next: valid ? 'send_whatsapp' : 'reject' } }];"
+      },
+      "id": "a44a2b32-9735-4f57-b4b1-84ebe3225ec5",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "1418617a-8ff1-4901-879c-e4dfceef25fc",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "eba6e549-5550-492d-818d-c73e307f1a35",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real whatsapp integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "a746f912-6831-4d05-9749-307197a89bb6",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real WHATSAPP API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1667a523-156b-4e3a-9852-7997fc920ec2",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "293ce455-96be-4eb8-ab6e-97cb2febcc29",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "fee15f88-f6db-49d4-a522-74d757ae33e2",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-broadcast-optin",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "35a4a6ee-1cc5-415d-81a8-e7f642fda046",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'whatsapp-broadcast-optin',\n    category: 'whatsapp',\n    action: 'broadcast-optin',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master whatsapp/broadcast-optin completed',\n  }\n}];"
+      },
+      "id": "090f9497-6858-4905-bb12-bde02ae0e796",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "2c18f966-4a60-45f6-ad4c-baadddd216ce",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "whatsapp-broadcast-optin",
+    "engineWorkflowRef": "master-whatsapp-broadcast-optin"
+  }
+}

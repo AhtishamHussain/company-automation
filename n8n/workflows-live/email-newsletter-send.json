@@ -1,0 +1,131 @@
+{
+  "name": "Live | EMAIL | Newsletter send",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-email-newsletter-send",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "fda15eab-6436-4ca8-aeef-53c07f2bc281",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "f105cd37-26c6-4123-bfb0-4e557912eba0"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b13cb22a-d3c1-4497-9dd7-b8403c8c0990",
+              "name": "masterWorkflowId",
+              "value": "email-newsletter-send",
+              "type": "string"
+            },
+            {
+              "id": "e70bbdbc-41d0-4a6f-ada5-5c04e7bbd6cf",
+              "name": "engineWorkflowRef",
+              "value": "live-email-newsletter-send",
+              "type": "string"
+            },
+            {
+              "id": "33d1a379-8582-40fd-9f1c-6bcbc9983c8d",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "f6513015-6a4a-419c-bc47-e8cc7c1c8c08",
+              "name": "action",
+              "value": "newsletter-send",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "2c6bc31a-2a8d-4e20-b582-0ca1d0d25471",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-newsletter-send',\n    category: 'email',\n    action: 'newsletter-send',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/newsletter-send completed on n8n',\n  }\n}];"
+      },
+      "id": "005fab73-ac10-47a8-b605-1657f5add4e2",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "9dce7a30-4405-4f74-89ab-de8341aede3f",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

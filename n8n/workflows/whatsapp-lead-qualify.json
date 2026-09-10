@@ -1,0 +1,280 @@
+{
+  "name": "Master | WHATSAPP | Lead qualify chat",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-whatsapp-lead-qualify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1e14e671-b08b-4deb-860c-ff55c37b958c",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "aefd722a-d006-4804-8408-b3d326423ccb"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "29632ed3-5843-44e1-8251-40cfbfd28449",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-lead-qualify",
+              "type": "string"
+            },
+            {
+              "id": "68d6c9b6-33b4-4390-8819-41ebb9a51ea6",
+              "name": "engineWorkflowRef",
+              "value": "master-whatsapp-lead-qualify",
+              "type": "string"
+            },
+            {
+              "id": "f706829a-3266-4939-90a1-22cb361cdcc5",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "db7d01ad-dc85-43a9-b1f7-7497d1064d2c",
+              "name": "source",
+              "value": "master",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1a95c18a-6d28-4304-a904-bc42da46ad03",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw = items[0].json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst meta = {\n  masterWorkflowId: 'whatsapp-lead-qualify',\n  category: 'whatsapp',\n  intent: \"Run qualifying questions\",\n  receivedAt: new Date().toISOString(),\n};\n\nconst wa = {\n  to: body.to || body.phone || null,\n  template: 'lead-qualify',\n  text: body.text || body.message || '[Master] Run qualifying questions',\n  locale: body.locale || 'en',\n};\nconst valid = Boolean(wa.to) || 'lead-qualify' === 'broadcast-optin' || body.source === 'master-app';\nreturn [{ json: { ...meta, valid, wa, action: 'lead-qualify', next: valid ? 'send_whatsapp' : 'reject' } }];"
+      },
+      "id": "c7517a91-42ca-4f04-b678-1159956d9426",
+      "name": "Normalize & validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "95804c6a-1e0d-42c1-b59e-b803999b4618",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "66c28106-51a3-4de1-8067-16f931477866",
+      "name": "Valid payload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Integration stub — replace with Slack / Gmail / WhatsApp / CRM node\nconst input = items[0].json;\nreturn [{\n  json: {\n    ...input,\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace this Code node with the real whatsapp integration',\n      forwardedAt: new Date().toISOString(),\n    },\n  },\n}];"
+      },
+      "id": "febf1772-c20b-4c3c-9def-3c1106979590",
+      "name": "Call integration stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -80
+      ],
+      "notes": "Replace with real WHATSAPP API / Slack / Email / WhatsApp node",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c56cfe9b-2c03-439e-99ea-2608fddb2783",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "f9c62c9f-474b-4eea-be89-1003ca8daaf1",
+              "name": "error",
+              "value": "Invalid payload — missing required fields",
+              "type": "string"
+            },
+            {
+              "id": "1d6a583a-7974-4af8-a248-54bb4a114355",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-lead-qualify",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2f74f6df-2260-44ea-b5eb-2d62e9741f3e",
+      "name": "Reject invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = items[0].json;\nreturn [{\n  json: {\n    ok: j.ok === false ? false : true,\n    engine: 'n8n',\n    masterWorkflowId: j.masterWorkflowId || 'whatsapp-lead-qualify',\n    category: 'whatsapp',\n    action: 'lead-qualify',\n    integrationStub: Boolean(j.integration),\n    result: j.lead || j.email || j.slack || j.wa || j.integration || j,\n    message: j.ok === false ? (j.error || 'rejected') : 'Master whatsapp/lead-qualify completed',\n  }\n}];"
+      },
+      "id": "57143537-4d2a-44df-9da1-eb07810acb1b",
+      "name": "Build response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "82b3c486-fc57-44c2-b8aa-d5c7c35ebd59",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Normalize & validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & validate": {
+      "main": [
+        [
+          {
+            "node": "Valid payload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payload?": {
+      "main": [
+        [
+          {
+            "node": "Call integration stub",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call integration stub": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject invalid": {
+      "main": [
+        [
+          {
+            "node": "Build response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "masterWorkflowId": "whatsapp-lead-qualify",
+    "engineWorkflowRef": "master-whatsapp-lead-qualify"
+  }
+}

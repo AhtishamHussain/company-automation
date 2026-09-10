@@ -1,0 +1,131 @@
+{
+  "name": "Live | EMAIL | Cold outreach",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-email-cold-outreach",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7caadeb0-2142-4a2c-8512-8c6aa7f2abed",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "5d090e68-5b8c-4dbf-a66c-5efb77d04782"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "414b81c8-4f57-4023-85aa-34f8ae787d87",
+              "name": "masterWorkflowId",
+              "value": "email-cold-outreach",
+              "type": "string"
+            },
+            {
+              "id": "9ef27620-d871-4910-b59f-466f16a077d4",
+              "name": "engineWorkflowRef",
+              "value": "live-email-cold-outreach",
+              "type": "string"
+            },
+            {
+              "id": "159bdac6-93c7-4799-a486-5ed88b11c95a",
+              "name": "category",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "8f46c4d4-1f11-43ec-a0e0-9b24c6f31242",
+              "name": "action",
+              "value": "cold-outreach",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "3a2a735c-2d6c-40aa-b931-04de54a84427",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'email-cold-outreach',\n    category: 'email',\n    action: 'cold-outreach',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real email integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master email/cold-outreach completed on n8n',\n  }\n}];"
+      },
+      "id": "f1ee9bc0-e066-40d1-9e1a-019703a287ef",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "f99ca609-c3a8-40b2-bafa-219273ce1128",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

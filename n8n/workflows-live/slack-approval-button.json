@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | Approval buttons",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-approval-button",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "2cb698c0-59a2-44be-abb7-3ebf5c2c9ac4",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "1d719448-5428-44de-831b-3e6b3bf6ff91"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f3848d5-3941-4212-aeea-370492030148",
+              "name": "masterWorkflowId",
+              "value": "slack-approval-button",
+              "type": "string"
+            },
+            {
+              "id": "9f70433b-6f79-45a6-8866-965a0ea4fe9b",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-approval-button",
+              "type": "string"
+            },
+            {
+              "id": "b18803ce-a753-420d-a435-011fdf351afa",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "f7b9c78a-4792-49ec-ae34-7c96032f92ed",
+              "name": "action",
+              "value": "approval-button",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "adc2cd70-7429-42de-b1cd-fcff1b02ded8",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-approval-button',\n    category: 'slack',\n    action: 'approval-button',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/approval-button completed on n8n',\n  }\n}];"
+      },
+      "id": "22ebdd03-524f-4c16-a63a-ff7876ea01dd",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "f91e9c7a-c2c7-4a14-a376-54fdfb3d05ea",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

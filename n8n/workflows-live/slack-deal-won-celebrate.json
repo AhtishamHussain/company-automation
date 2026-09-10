@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | Deal won celebrate",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-deal-won-celebrate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7f786e63-6255-4434-b189-f222e9a8ec6a",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "564e7a15-facd-460f-95d1-5f502dd2c9b5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1dd15913-d96b-462b-a439-728200ebf222",
+              "name": "masterWorkflowId",
+              "value": "slack-deal-won-celebrate",
+              "type": "string"
+            },
+            {
+              "id": "7ae8c688-7c6d-4b71-8067-d95fe291e052",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-deal-won-celebrate",
+              "type": "string"
+            },
+            {
+              "id": "7a3f7e20-509c-4db8-9999-d9b43a71b1db",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "0bb82dcf-2939-4d39-ade8-414ff8a53c60",
+              "name": "action",
+              "value": "deal-won-celebrate",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "788ecea3-d2c7-430d-9de7-b115fc8dc2d9",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-deal-won-celebrate',\n    category: 'slack',\n    action: 'deal-won-celebrate',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/deal-won-celebrate completed on n8n',\n  }\n}];"
+      },
+      "id": "d4296924-59c4-43d2-afdf-b4abca1db7f1",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "e63b9dad-3b88-499c-84f8-49a08ff9fe7f",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

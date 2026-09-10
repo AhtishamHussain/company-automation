@@ -1,0 +1,150 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  postgres-kestra:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: kestra
+      POSTGRES_DB: kestra
+    volumes:
+      - kestra_pg:/var/lib/postgresql/data
+
+  kestra:
+    image: kestra/kestra:latest
+    command: server standalone
+    ports:
+      - "8080:8080"
+    environment:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://postgres-kestra:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: kestra
+        kestra:
+          server:
+            basic-auth:
+              username: "admin@master.local"
+              password: "MasterKestra1"
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              basePath: "/app/storage"
+          queue:
+            type: postgres
+    volumes:
+      - kestra_storage:/app/storage
+    depends_on:
+      - postgres-kestra
+
+  temporal:
+    image: temporalio/auto-setup:1.25.2
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgres-temporal
+    depends_on:
+      - postgres-temporal
+
+  postgres-temporal:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+    volumes:
+      - temporal_pg:/var/lib/postgresql/data
+
+  temporal-ui:
+    image: temporalio/ui:2.31.2
+    ports:
+      - "8088:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    depends_on:
+      - temporal
+
+  activepieces:
+    image: activepieces/activepieces:latest
+    ports:
+      - "8081:80"
+    environment:
+      - AP_ENGINE_EXECUTABLE_PATH=/usr/bin/packages/server/api/src/assets/mock-engine.sh
+      - AP_API_KEY=master-dev-key
+      - AP_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef
+      - AP_JWT_SECRET=master-jwt-secret-change-me
+      - AP_FRONTEND_URL=http://localhost:8081
+      - AP_POSTGRES_DATABASE=activepieces
+      - AP_POSTGRES_HOST=postgres-ap
+      - AP_POSTGRES_PORT=5432
+      - AP_POSTGRES_USERNAME=activepieces
+      - AP_POSTGRES_PASSWORD=activepieces
+      - AP_REDIS_HOST=redis-ap
+      - AP_REDIS_PORT=6379
+    depends_on:
+      - postgres-ap
+      - redis-ap
+
+  postgres-ap:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: activepieces
+      POSTGRES_PASSWORD: activepieces
+      POSTGRES_DB: activepieces
+    volumes:
+      - ap_pg:/var/lib/postgresql/data
+
+  redis-ap:
+    image: redis:7
+    volumes:
+      - ap_redis:/data
+
+  ap-bridge:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./workers/ap-bridge:/app
+    command: ["node", "server.mjs"]
+    environment:
+      - PORT=8091
+    ports:
+      - "8091:8091"
+
+  trigger-bridge:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./workers/trigger-bridge:/app
+    command: ["node", "server.mjs"]
+    environment:
+      - PORT=8092
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    ports:
+      - "8092:8092"
+
+volumes:
+  n8n_data:
+  kestra_pg:
+  kestra_storage:
+  temporal_pg:
+  ap_pg:
+  ap_redis:

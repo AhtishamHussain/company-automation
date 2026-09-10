@@ -1,0 +1,131 @@
+{
+  "name": "Live | WHATSAPP | Broadcast (opt-in)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-whatsapp-broadcast-optin",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d0d1654f-3d42-479f-bef5-0a2ef4d834f7",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "edd3c197-f9f6-4037-8dc5-47fd276ce15e"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2df4ac32-47af-4ed1-a8a4-ca6681b7a37f",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-broadcast-optin",
+              "type": "string"
+            },
+            {
+              "id": "aef77e2b-048f-47d8-8ac7-b8a4183742b1",
+              "name": "engineWorkflowRef",
+              "value": "live-whatsapp-broadcast-optin",
+              "type": "string"
+            },
+            {
+              "id": "18a5393f-338d-414b-bbc8-17e3cb62cbd9",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "4bc8049c-0fd9-4195-8a5a-60b1a9ff6291",
+              "name": "action",
+              "value": "broadcast-optin",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "1335550c-78a2-4305-988c-5abc5496e7b5",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-broadcast-optin',\n    category: 'whatsapp',\n    action: 'broadcast-optin',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/broadcast-optin completed on n8n',\n  }\n}];"
+      },
+      "id": "d41d52a0-02ff-4950-b8ba-746b761d24fa",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "204355c2-e051-4dfa-83d6-9367b2cb1c6a",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

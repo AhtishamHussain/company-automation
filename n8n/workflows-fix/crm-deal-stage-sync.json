@@ -1,0 +1,125 @@
+{
+  "name": "Master Fix | CRM | Deal stage sync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "master-crm-deal-stage-sync",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "83206b3c-0b48-4261-aa68-069432eb089a",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "5b01f191-2f7f-4a21-bd65-b2fa697ee158"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b24ecaf0-1b4b-485a-8045-b82010296df6",
+              "name": "masterWorkflowId",
+              "value": "crm-deal-stage-sync",
+              "type": "string"
+            },
+            {
+              "id": "202dacb9-fa17-4fea-a804-6cd45f3e9688",
+              "name": "engineWorkflowRef",
+              "value": "master-crm-deal-stage-sync",
+              "type": "string"
+            },
+            {
+              "id": "84bdc096-5d2d-4f13-bcc6-4d267be1cb54",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "aefa23ed-97a9-41ce-9282-105461b79fc6",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nconst lead = {\n  name: body.name || body.fullName || 'Unknown',\n  email: body.email || null,\n  company: body.company || body.account || null,\n  source: body.source || 'master',\n};\nreturn [{\n  json: {\n    ...body,\n    masterWorkflowId: 'crm-deal-stage-sync',\n    category: 'crm',\n    action: 'deal-stage-sync',\n    intent: \"Sync deal stage\",\n    lead,\n    ok: true,\n    integration: { provider: 'stub', status: 'accepted', at: new Date().toISOString() },\n    message: 'Master crm/deal-stage-sync completed',\n  }\n}];"
+      },
+      "id": "5b4e05a9-415b-4421-8447-33996cad94e0",
+      "name": "Process payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "f3bb3247-177e-4320-9fe4-dd98c1d15972",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

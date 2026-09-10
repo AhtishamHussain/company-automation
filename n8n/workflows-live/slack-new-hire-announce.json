@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | New hire announce",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-new-hire-announce",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "37cafc2d-2f41-4951-b82c-c21b68257c10",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "17419716-c7af-465a-a9ea-f585883a0abe"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "942d1a77-6f70-4720-bc96-19b143bb1244",
+              "name": "masterWorkflowId",
+              "value": "slack-new-hire-announce",
+              "type": "string"
+            },
+            {
+              "id": "22ac1e94-ccd1-42a8-a16f-28a0a355491d",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-new-hire-announce",
+              "type": "string"
+            },
+            {
+              "id": "681752cb-559c-43de-ae7b-42801fa0c644",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "394bda0b-a34e-43e7-b5ce-db7de21598ef",
+              "name": "action",
+              "value": "new-hire-announce",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "f7e5c28e-f991-4d53-979e-aa334e0a958b",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-new-hire-announce',\n    category: 'slack',\n    action: 'new-hire-announce',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/new-hire-announce completed on n8n',\n  }\n}];"
+      },
+      "id": "7855e120-6eb2-4e80-aec0-d675b3425ca2",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "28c62f60-85d0-4603-8954-4a5a4b876cc8",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

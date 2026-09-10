@@ -1,0 +1,131 @@
+{
+  "name": "Live | SLACK | Standup prompt",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-slack-standup-prompt",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "40f3ba24-2bf2-47ec-b1c4-48344f305bab",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "26be5402-5a7e-4c7b-aebb-55cf69c5dec9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1dd3c9da-666c-4705-a9a8-78995db4b08f",
+              "name": "masterWorkflowId",
+              "value": "slack-standup-prompt",
+              "type": "string"
+            },
+            {
+              "id": "caaeb6bb-17c6-45ee-9fa1-beb18d65031f",
+              "name": "engineWorkflowRef",
+              "value": "live-slack-standup-prompt",
+              "type": "string"
+            },
+            {
+              "id": "8a429a98-5310-45cd-9a78-438f7c3ef0b7",
+              "name": "category",
+              "value": "slack",
+              "type": "string"
+            },
+            {
+              "id": "775f0bf9-611f-4842-9722-8760145b3558",
+              "name": "action",
+              "value": "standup-prompt",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "f30e1ba3-c388-4bfb-8fc8-ed9bfff68e31",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'slack-standup-prompt',\n    category: 'slack',\n    action: 'standup-prompt',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real slack integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master slack/standup-prompt completed on n8n',\n  }\n}];"
+      },
+      "id": "90e5f1a4-58ac-41e3-b0e9-26ab12220215",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "47848f18-d895-493f-b6bc-2e83f0dbda3e",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

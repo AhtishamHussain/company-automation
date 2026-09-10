@@ -1,0 +1,170 @@
+# Canonical map: 100 Kestra workflow variations → 10 masters
+# Execute: namespace/master with inputs.workflow_key = <key>
+
+departments:
+  - id: 1
+    namespace: company.operations
+    master: master
+    range: [1, 10]
+    workflows:
+      - { id: 1, key: daily_standup_aggregator, name: Daily Standup Aggregator, trigger: schedule }
+      - { id: 2, key: e_sign_contract_tracker, name: E-Sign Contract Tracker, trigger: webhook }
+      - { id: 3, key: office_inventory_alerts, name: Office Inventory Alerts, trigger: schedule }
+      - { id: 4, key: expense_approval_router, name: Expense Approval Router, trigger: inputs }
+      - { id: 5, key: system_health_check, name: System Health Check, trigger: schedule }
+      - { id: 6, key: social_media_multi_poster, name: Social Media Multi-Poster, trigger: inputs }
+      - { id: 7, key: feedback_sentiment_analyzer, name: Feedback Sentiment Analyzer, trigger: webhook }
+      - { id: 8, key: calendar_synchronizer, name: Calendar Synchronizer, trigger: schedule }
+      - { id: 9, key: guest_wifi_provisioner, name: Guest Wi-Fi Provisioner, trigger: schedule }
+      - { id: 10, key: data_backup_archiver, name: Data Backup Archiver, trigger: schedule }
+
+  - id: 2
+    namespace: company.hr
+    master: master
+    range: [11, 20]
+    workflows:
+      - { id: 11, key: new_hire_onboarding, name: New Hire Onboarding Pipeline, trigger: webhook }
+      - { id: 12, key: offboarding_deprovisioning, name: Offboarding Deprovisioning, trigger: inputs }
+      - { id: 13, key: anniversary_birthday_bot, name: Anniversary/Birthday Bot, trigger: schedule }
+      - { id: 14, key: time_off_request_router, name: Time-Off Request Router, trigger: webhook }
+      - { id: 15, key: performance_review_scheduler, name: Performance Review Scheduler, trigger: schedule }
+      - { id: 16, key: policy_update_tracker, name: Policy Update Tracker, trigger: inputs }
+      - { id: 17, key: referral_reward_tracker, name: Referral Reward Tracker, trigger: inputs }
+      - { id: 18, key: training_compliance_monitor, name: Training Compliance Monitor, trigger: schedule }
+      - { id: 19, key: equipment_provisioning, name: Equipment Provisioning, trigger: webhook }
+      - { id: 20, key: org_chart_updater, name: Org Chart Updater, trigger: webhook }
+
+  - id: 3
+    namespace: company.recruitment
+    master: master
+    range: [21, 30]
+    workflows:
+      - { id: 21, key: applicant_auto_responder, name: Applicant Auto-Responder, trigger: webhook }
+      - { id: 22, key: resume_screening_ai, name: Resume Screening AI, trigger: inputs }
+      - { id: 23, key: interview_booking_linker, name: Interview Booking Linker, trigger: inputs }
+      - { id: 24, key: interview_feedback_collector, name: Interview Feedback Collector, trigger: schedule }
+      - { id: 25, key: offer_letter_generator, name: Offer Letter Generator, trigger: inputs }
+      - { id: 26, key: background_check_trigger, name: Background Check Trigger, trigger: webhook }
+      - { id: 27, key: rejection_email_delayer, name: Rejection Email Delayer, trigger: inputs }
+      - { id: 28, key: talent_pool_tagging, name: Talent Pool Tagging, trigger: inputs }
+      - { id: 29, key: job_board_multi_poster, name: Job Board Multi-Poster, trigger: inputs }
+      - { id: 30, key: salary_benchmarking, name: Salary Benchmarking, trigger: inputs }
+
+  - id: 4
+    namespace: company.finance
+    master: master
+    range: [31, 40]
+    workflows:
+      - { id: 31, key: email_invoice_extractor, name: Email Invoice Extractor, trigger: schedule }
+      - { id: 32, key: invoice_duplication_checker, name: Invoice Duplication Checker, trigger: inputs }
+      - { id: 33, key: po_matching_verification, name: PO Matching Verification, trigger: inputs }
+      - { id: 34, key: erp_ledger_logger, name: ERP Ledger Logger, trigger: inputs }
+      - { id: 35, key: late_payment_escalator, name: Late Payment Escalator, trigger: schedule }
+      - { id: 36, key: early_bird_discount_alert, name: Early-Bird Discount Alert, trigger: inputs }
+      - { id: 37, key: tax_compliance_validator, name: Tax Compliance Validator, trigger: inputs }
+      - { id: 38, key: multi_currency_converter, name: Multi-Currency Converter, trigger: inputs }
+      - { id: 39, key: payment_confirmation_sender, name: Payment Confirmation Sender, trigger: webhook }
+      - { id: 40, key: audit_trail_archiver, name: Audit Trail Archiver, trigger: inputs }
+
+  - id: 5
+    namespace: company.crm
+    master: master
+    range: [41, 50]
+    workflows:
+      - { id: 41, key: lead_scoring_engine, name: Lead Scoring Engine, trigger: webhook }
+      - { id: 42, key: stale_lead_restarter, name: Stale Lead Restarter, trigger: schedule }
+      - { id: 43, key: win_loss_alert_bot, name: Win-Loss Alert Bot, trigger: webhook }
+      - { id: 44, key: contact_enrichment_pipeline, name: Contact Enrichment Pipeline, trigger: inputs }
+      - { id: 45, key: lost_deal_surveyor, name: Lost Deal Surveyor, trigger: webhook }
+      - { id: 46, key: drip_campaign_enroller, name: Drip Campaign Enroller, trigger: inputs }
+      - { id: 47, key: duplicate_account_merger, name: Duplicate Account Merger, trigger: schedule }
+      - { id: 48, key: vip_client_flag, name: VIP Client Flag, trigger: inputs }
+      - { id: 49, key: sales_rep_round_robin, name: Sales Rep Round-Robin, trigger: inputs }
+      - { id: 50, key: weekly_activity_reporting_bot, name: Weekly Activity Reporting Bot, trigger: schedule }
+
+  - id: 6
+    namespace: company.email
+    master: master
+    range: [51, 60]
+    workflows:
+      - { id: 51, key: welcome_sequence, name: Welcome Sequence, trigger: webhook }
+      - { id: 52, key: inbox_triage, name: Inbox Triage, trigger: webhook }
+      - { id: 53, key: bounce_handler, name: Bounce Handler, trigger: webhook }
+      - { id: 54, key: digest_daily, name: Daily Digest, trigger: schedule }
+      - { id: 55, key: cold_outreach, name: Cold Outreach, trigger: inputs }
+      - { id: 56, key: reply_detect, name: Reply Detect, trigger: webhook }
+      - { id: 57, key: newsletter_send, name: Newsletter Send, trigger: inputs }
+      - { id: 58, key: email_to_ticket, name: Email to Ticket, trigger: webhook }
+      - { id: 59, key: unsubscribe_sync, name: Unsubscribe Sync, trigger: webhook }
+      - { id: 60, key: deliverability_monitor, name: Deliverability Monitor, trigger: schedule }
+
+  - id: 7
+    namespace: company.slack
+    master: master
+    range: [61, 70]
+    workflows:
+      - { id: 61, key: incident_alert, name: Incident Alert, trigger: webhook }
+      - { id: 62, key: approval_buttons, name: Approval Buttons, trigger: webhook }
+      - { id: 63, key: standup_prompt, name: Standup Prompt, trigger: schedule }
+      - { id: 64, key: new_hire_announce, name: New Hire Announce, trigger: schedule }
+      - { id: 65, key: deal_won_celebrate, name: Deal Won Celebrate, trigger: webhook }
+      - { id: 66, key: oncall_rotate, name: On-call Rotate, trigger: schedule }
+      - { id: 67, key: feedback_poll, name: Feedback Poll, trigger: inputs }
+      - { id: 68, key: channel_archive, name: Stale Channel Archive, trigger: schedule }
+      - { id: 69, key: release_notes_poster, name: Release Notes Poster, trigger: inputs }
+      - { id: 70, key: security_alert_router, name: Security Alert Router, trigger: webhook }
+
+  - id: 8
+    namespace: company.whatsapp
+    master: master
+    range: [71, 80]
+    workflows:
+      - { id: 71, key: order_status, name: Order Status, trigger: webhook }
+      - { id: 72, key: appointment_remind, name: Appointment Remind, trigger: schedule }
+      - { id: 73, key: support_handoff, name: Support Handoff, trigger: webhook }
+      - { id: 74, key: otp_delivery, name: OTP Delivery, trigger: webhook }
+      - { id: 75, key: broadcast_optin, name: Broadcast Opt-in, trigger: inputs }
+      - { id: 76, key: payment_link, name: Payment Link, trigger: webhook }
+      - { id: 77, key: feedback_request, name: Feedback Request, trigger: webhook }
+      - { id: 78, key: lead_qualify_chat, name: Lead Qualify Chat, trigger: webhook }
+      - { id: 79, key: shipping_update, name: Shipping Update, trigger: webhook }
+      - { id: 80, key: renewal_reminder, name: Renewal Reminder, trigger: schedule }
+
+  - id: 9
+    namespace: company.knowledge
+    master: master
+    range: [81, 90]
+    workflows:
+      - { id: 81, key: docs_ingest, name: Docs Ingest, trigger: schedule }
+      - { id: 82, key: chunk_embed, name: Chunk & Embed, trigger: webhook }
+      - { id: 83, key: stale_article_detect, name: Stale Article Detect, trigger: schedule }
+      - { id: 84, key: faq_publish, name: FAQ Publish, trigger: inputs }
+      - { id: 85, key: answer_draft, name: Answer Draft, trigger: webhook }
+      - { id: 86, key: ocr_pipeline, name: OCR Pipeline, trigger: webhook }
+      - { id: 87, key: redact_pii, name: Redact PII, trigger: webhook }
+      - { id: 88, key: meeting_summary, name: Meeting Summary, trigger: webhook }
+      - { id: 89, key: action_extract, name: Action Extract, trigger: webhook }
+      - { id: 90, key: kb_backup, name: KB Backup, trigger: schedule }
+
+  - id: 10
+    namespace: company.support
+    master: master
+    range: [91, 100]
+    workflows:
+      - { id: 91, key: ticket_create, name: Ticket Create, trigger: webhook }
+      - { id: 92, key: auto_tag, name: Auto Tag, trigger: webhook }
+      - { id: 93, key: sla_breach_alert, name: SLA Breach Alert, trigger: schedule }
+      - { id: 94, key: macro_suggest, name: Macro Suggest, trigger: webhook }
+      - { id: 95, key: csat_survey, name: CSAT Survey, trigger: webhook }
+      - { id: 96, key: refund_flow, name: Refund Flow, trigger: inputs }
+      - { id: 97, key: bug_escalate, name: Bug Escalate, trigger: inputs }
+      - { id: 98, key: kb_deflect, name: KB Deflect, trigger: webhook }
+      - { id: 99, key: proposal_draft, name: Proposal Draft Generator, trigger: inputs }
+      - { id: 100, key: proposal_send_track, name: Proposal Send & Track, trigger: inputs }
+
+plugins_required:
+  - io.kestra.plugin.core
+  - io.kestra.plugin.fs
+  - io.kestra.plugin.jdbc
+  - io.kestra.plugin.openai
+  - pdf (ExtractText / GenerateFromTemplate — install matching Kestra PDF plugin)

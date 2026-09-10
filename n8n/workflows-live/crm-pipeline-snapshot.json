@@ -1,0 +1,131 @@
+{
+  "name": "Live | CRM | Pipeline snapshot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-crm-pipeline-snapshot",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "bc9910dd-cb38-4a66-9c81-ce13926ecbe5",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d60f2678-46c1-4d69-8f9f-b0bd139a936f"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e5d085ec-3b32-4bbc-a1b3-25b7f2862360",
+              "name": "masterWorkflowId",
+              "value": "crm-pipeline-snapshot",
+              "type": "string"
+            },
+            {
+              "id": "21565246-91ff-4808-ac96-5a9572560ff5",
+              "name": "engineWorkflowRef",
+              "value": "live-crm-pipeline-snapshot",
+              "type": "string"
+            },
+            {
+              "id": "41cffdb9-1736-4749-bc86-8f4967cef617",
+              "name": "category",
+              "value": "crm",
+              "type": "string"
+            },
+            {
+              "id": "2908caa2-8d00-4e0e-ae9a-2ec933059f5d",
+              "name": "action",
+              "value": "pipeline-snapshot",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "8fe9b061-9f38-456a-bb7f-5a251c7cb80a",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'crm-pipeline-snapshot',\n    category: 'crm',\n    action: 'pipeline-snapshot',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real crm integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master crm/pipeline-snapshot completed on n8n',\n  }\n}];"
+      },
+      "id": "fd3837b1-d2a7-47aa-bc2a-222adc1e11b6",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "00c050eb-378c-482c-9d99-6ffe26a717c7",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

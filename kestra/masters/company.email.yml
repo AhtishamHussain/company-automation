@@ -1,0 +1,160 @@
+id: master
+namespace: company.email
+description: |
+  Master template for company.email (workflows 51–60).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "6"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - welcome_sequence
+      - inbox_triage
+      - bounce_handler
+      - digest_daily
+      - cold_outreach
+      - reply_detect
+      - newsletter_send
+      - email_to_ticket
+      - unsubscribe_sync
+      - deliverability_monitor
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      welcome_sequence:
+        - id: log_welcome_sequence
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 51. Welcome Sequence
+            Goal: Welcome Sequence
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_welcome_sequence
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK welcome_sequence — replace this stub with jdbc/openai/http/pdf plugins"
+      inbox_triage:
+        - id: log_inbox_triage
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 52. Inbox Triage
+            Goal: Inbox Triage
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_inbox_triage
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK inbox_triage — replace this stub with jdbc/openai/http/pdf plugins"
+      bounce_handler:
+        - id: log_bounce_handler
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 53. Bounce Handler
+            Goal: Bounce Handler
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_bounce_handler
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK bounce_handler — replace this stub with jdbc/openai/http/pdf plugins"
+      digest_daily:
+        - id: log_digest_daily
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 54. Daily Digest
+            Goal: Daily Digest
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_digest_daily
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK digest_daily — replace this stub with jdbc/openai/http/pdf plugins"
+      cold_outreach:
+        - id: log_cold_outreach
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 55. Cold Outreach
+            Goal: Cold Outreach
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_cold_outreach
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK cold_outreach — replace this stub with jdbc/openai/http/pdf plugins"
+      reply_detect:
+        - id: log_reply_detect
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 56. Reply Detect
+            Goal: Reply Detect
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_reply_detect
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK reply_detect — replace this stub with jdbc/openai/http/pdf plugins"
+      newsletter_send:
+        - id: log_newsletter_send
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 57. Newsletter Send
+            Goal: Newsletter Send
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_newsletter_send
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK newsletter_send — replace this stub with jdbc/openai/http/pdf plugins"
+      email_to_ticket:
+        - id: log_email_to_ticket
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 58. Email to Ticket
+            Goal: Email to Ticket
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_email_to_ticket
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK email_to_ticket — replace this stub with jdbc/openai/http/pdf plugins"
+      unsubscribe_sync:
+        - id: log_unsubscribe_sync
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 59. Unsubscribe Sync
+            Goal: Unsubscribe Sync
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_unsubscribe_sync
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK unsubscribe_sync — replace this stub with jdbc/openai/http/pdf plugins"
+      deliverability_monitor:
+        - id: log_deliverability_monitor
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 60. Deliverability Monitor
+            Goal: Deliverability Monitor
+            Namespace: company.email
+            Payload: {{ inputs.payload }}
+        - id: done_deliverability_monitor
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK deliverability_monitor — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []

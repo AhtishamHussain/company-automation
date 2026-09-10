@@ -1,0 +1,131 @@
+{
+  "name": "Live | WHATSAPP | Payment link",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live-whatsapp-payment-link",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "0d0db0c3-ffb5-4787-bdf5-428cc50e5545",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "a9a09bb7-5c8d-450b-a9a7-c479a237b089"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "04dc791f-926b-43b9-bdd5-0868768da1bc",
+              "name": "masterWorkflowId",
+              "value": "whatsapp-payment-link",
+              "type": "string"
+            },
+            {
+              "id": "59e2d42a-4313-4dd2-817a-1439d981ada2",
+              "name": "engineWorkflowRef",
+              "value": "live-whatsapp-payment-link",
+              "type": "string"
+            },
+            {
+              "id": "7ed34a45-6d7a-417e-9c2e-4c9ecc21b737",
+              "name": "category",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "0e978ab5-0ac7-440d-ae97-547fef90236d",
+              "name": "action",
+              "value": "payment-link",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "4e1a250f-e7fd-4590-9704-38b468a531c1",
+      "name": "Master metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = (raw.body && typeof raw.body === 'object' && !Array.isArray(raw.body))\n  ? { ...raw, ...raw.body }\n  : raw;\nreturn [{\n  json: {\n    ok: true,\n    engine: 'n8n',\n    masterWorkflowId: body.masterWorkflowId || 'whatsapp-payment-link',\n    category: 'whatsapp',\n    action: 'payment-link',\n    received: {\n      name: body.name || null,\n      email: body.email || null,\n      company: body.company || null,\n      to: body.to || body.phone || null,\n      channel: body.channel || null,\n      text: body.text || body.message || null,\n      source: body.source || 'master',\n    },\n    integration: {\n      provider: 'stub',\n      status: 'accepted',\n      note: 'Replace with real whatsapp integration nodes',\n      at: new Date().toISOString(),\n    },\n    message: 'Master whatsapp/payment-link completed on n8n',\n  }\n}];"
+      },
+      "id": "4d3359fe-0145-48c9-b654-4d6d1239915a",
+      "name": "Process + stub integration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "3d3a60ce-ae5d-412c-aa3e-ab51ace66b9c",
+      "name": "Respond to Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Master metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master metadata": {
+      "main": [
+        [
+          {
+            "node": "Process + stub integration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process + stub integration": {
+      "main": [
+        [
+          {
+            "node": "Respond to Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

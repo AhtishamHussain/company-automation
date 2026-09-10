@@ -1,0 +1,11 @@
+id: invoice-generate
+namespace: master.invoice
+description: Master · Generate invoices from closed deals (stub)
+tasks:
+  - id: log_start
+    type: io.kestra.plugin.core.log.Log
+    message: "Master invoice-generate started for {{ trigger | json }}"
+  - id: stub_work
+    type: io.kestra.plugin.core.debug.Return
+    format: "Invoice batch stub — replace with real billing tasks"
+triggers: []

@@ -1,0 +1,160 @@
+id: master
+namespace: company.whatsapp
+description: |
+  Master template for company.whatsapp (workflows 71–80).
+  Pass inputs.workflow_key to select the variation. Replace stub HTTP/Log with jdbc/openai/pdf/fs plugins.
+labels:
+  architecture: modular-master
+  department: "8"
+  count: "10"
+
+inputs:
+  - id: workflow_key
+    type: SELECT
+    required: true
+    values:
+      - order_status
+      - appointment_remind
+      - support_handoff
+      - otp_delivery
+      - broadcast_optin
+      - payment_link
+      - feedback_request
+      - lead_qualify_chat
+      - shipping_update
+      - renewal_reminder
+    description: Which of the 10 department workflows to run
+  - id: payload
+    type: JSON
+    defaults: {}
+    description: Dynamic fields for the selected workflow (ids, urls, amounts, etc.)
+  - id: callback_url
+    type: STRING
+    defaults: "https://httpbin.org/post"
+    description: Stub integration endpoint (replace with Slack/CRM/ERP URLs)
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+
+tasks:
+  - id: route
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.workflow_key }}"
+    cases:
+      order_status:
+        - id: log_order_status
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 71. Order Status
+            Goal: Order Status
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_order_status
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK order_status — replace this stub with jdbc/openai/http/pdf plugins"
+      appointment_remind:
+        - id: log_appointment_remind
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 72. Appointment Remind
+            Goal: Appointment Remind
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_appointment_remind
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK appointment_remind — replace this stub with jdbc/openai/http/pdf plugins"
+      support_handoff:
+        - id: log_support_handoff
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 73. Support Handoff
+            Goal: Support Handoff
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_support_handoff
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK support_handoff — replace this stub with jdbc/openai/http/pdf plugins"
+      otp_delivery:
+        - id: log_otp_delivery
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 74. OTP Delivery
+            Goal: OTP Delivery
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_otp_delivery
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK otp_delivery — replace this stub with jdbc/openai/http/pdf plugins"
+      broadcast_optin:
+        - id: log_broadcast_optin
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 75. Broadcast Opt-in
+            Goal: Broadcast Opt-in
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_broadcast_optin
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK broadcast_optin — replace this stub with jdbc/openai/http/pdf plugins"
+      payment_link:
+        - id: log_payment_link
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 76. Payment Link
+            Goal: Payment Link
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_payment_link
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK payment_link — replace this stub with jdbc/openai/http/pdf plugins"
+      feedback_request:
+        - id: log_feedback_request
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 77. Feedback Request
+            Goal: Feedback Request
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_feedback_request
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK feedback_request — replace this stub with jdbc/openai/http/pdf plugins"
+      lead_qualify_chat:
+        - id: log_lead_qualify_chat
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 78. Lead Qualify Chat
+            Goal: Lead Qualify Chat
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_lead_qualify_chat
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK lead_qualify_chat — replace this stub with jdbc/openai/http/pdf plugins"
+      shipping_update:
+        - id: log_shipping_update
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 79. Shipping Update
+            Goal: Shipping Update
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_shipping_update
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK shipping_update — replace this stub with jdbc/openai/http/pdf plugins"
+      renewal_reminder:
+        - id: log_renewal_reminder
+          type: io.kestra.plugin.core.log.Log
+          message: |
+            [{{ inputs.workflow_key }}] 80. Renewal Reminder
+            Goal: Renewal Reminder
+            Namespace: company.whatsapp
+            Payload: {{ inputs.payload }}
+        - id: done_renewal_reminder
+          type: io.kestra.plugin.core.debug.Return
+          format: "OK renewal_reminder — replace this stub with jdbc/openai/http/pdf plugins"
+    defaults:
+      - id: unknown_key
+        type: io.kestra.plugin.core.log.Log
+        level: ERROR
+        message: "Unknown workflow_key={{ inputs.workflow_key }}"
+
+triggers: []
