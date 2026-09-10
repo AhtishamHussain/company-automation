@@ -116,6 +116,12 @@ Until WhatsApp / Gmail / Slack tokens are set, n8n workflows still run and retur
 
 ---
 
-## License
+## Public repo / safety
 
-Private / internal use unless you add a license file.
+This project is safe to keep **public** as long as:
+
+- You never commit `.env` (gitignored). Real WhatsApp / Gmail / Slack / OpenAI keys stay on your PC.
+- `.env.example` only has **empty names**, not real tokens.
+- Passwords in `docker-compose.yml` (`MasterKestra1`, `kestra`, etc.) are **local demo** logins for Docker on your machine, not production cloud accounts. Change them before any real server.
+
+Do **not** paste API tokens into workflow JSON or this README.
